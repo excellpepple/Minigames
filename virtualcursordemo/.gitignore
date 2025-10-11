@@ -1,0 +1,19 @@
+# Ignore node modules
+node_modules/
+
+# Ignore npm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore build/output folders (if you have any)
+dist/
+build/
+
+# Ignore package-lock or yarn lock if you don't want to upload
+# package-lock.json
+# yarn.lock

@@ -1,0 +1,44 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  background: #000;
+}
+
+video {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+#cursor {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  background: rgba(0, 255, 255, 0.8);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+.button {
+  position: absolute;
+  padding: 15px 25px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ff5722;
+  color: #fff;
+  cursor: pointer;
+  z-index: 1001;
+  transition: background-color 0.2s;
+}
+
+.button:hover {
+  background-color: #e64a19;
+}
