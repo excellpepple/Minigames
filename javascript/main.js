@@ -2,7 +2,6 @@
 //tracking itself
 
 import { startCamera } from "./camera.js";
-import { moveButtonRandom } from "./utils.js";
 import { createHolisticTracker } from "./tracker.js";
 
 const video = document.getElementById("video");
