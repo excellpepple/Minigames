@@ -13,6 +13,7 @@ video {
   height: 100vh;
   object-fit: cover;
   transform: scaleX(-1);
+  z-index: 0;
 }
 
 #cursor {
@@ -23,7 +24,7 @@ video {
   border-radius: 50%;
   pointer-events: none;
   transform: translate(-50%, -50%);
-  z-index: 1000;
+  z-index: 10;
 }
 
 .button {
@@ -35,10 +36,19 @@ video {
   background-color: #ff5722;
   color: #fff;
   cursor: pointer;
-  z-index: 1001;
+  z-index: 5;
   transition: background-color 0.2s;
 }
 
 .button:hover {
   background-color: #e64a19;
+}
+#options {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 8px;
+  z-index: 5; /* ensures it's above the camera */
 }

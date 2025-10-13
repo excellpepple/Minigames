@@ -5,5 +5,3 @@ This demo uses mediapipe to track the fingertip of your pointer finger on either
 Currently, the virtual cursor is a blue dot.
 On the page, there are 2  buttons that say 'click me!'. When clicked, they move to random spots on the page.
 To interact with these elements using the virtual cursor, simply hover over them. After 1 second of hovering, it will click!
-
-More functionalities will be added in the future.
