@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-// ✅ Simple placeholder for user info
+// Simple placeholder for user info
 function UserAvatarSmall() {
   return (
     <Link to="/profile-setup" className="inline-flex items-center gap-2">
@@ -13,7 +13,7 @@ function UserAvatarSmall() {
   );
 }
 
-// ✅ Modal for viewing details
+// Modal for viewing details
 function Modal({ open, onClose, title, children }) {
   if (!open) return null;
   return (
@@ -37,7 +37,7 @@ function Modal({ open, onClose, title, children }) {
   );
 }
 
-// ✅ GameCard component
+// GameCard component
 function GameCard({ title, subtitle, icon, onPlay, onView }) {
   return (
     <div className="rounded-2xl border border-sky-200 bg-white p-6">
@@ -73,7 +73,7 @@ function GameCard({ title, subtitle, icon, onPlay, onView }) {
   );
 }
 
-// ✅ Main Games page
+// Main Games page
 export default function Games() {
   const nav = useNavigate();
   const [detailsOpen, setDetailsOpen] = useState(false);
