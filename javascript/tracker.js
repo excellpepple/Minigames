@@ -10,7 +10,7 @@ export function createHolisticTracker() {
     modelComplexity: 1,
     smoothLandmarks: true,
     minDetectionConfidence: 0.7,
-    minTrackingConfidence: 0.7
+    minTrackingConfidence: 0.9
   });
 
   holistic.onResults(onResultsHandler);
