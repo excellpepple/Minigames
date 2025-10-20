@@ -1,36 +1,31 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { startCamera } from "../lib/cursor/camera.js";
+import { startCamera } from "../lib/cursor/camera.js"; // <-- ensure 'Cursor' matches your folder casing
 
 export default function Homepage() {
-  //camera bg
   const videoRef = useRef(null);
   const [cameraError, setCameraError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [boot, setBoot] = useState("init");
 
-  //poppable bubbles
   const [bubbles, setBubbles] = useState(() => [
     { id: 1, xPct: 15, yPct: 25, r: 60, popped: false },
     { id: 2, xPct: 75, yPct: 40, r: 50, popped: false },
     { id: 3, xPct: 40, yPct: 70, r: 55, popped: false },
     { id: 4, xPct: 60, yPct: 60, r: 45, popped: false },
   ]);
-  const [boot, setBoot] = useState("init"); //init | loading | ready | error
 
   const reducedMotion = useMemo(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   }, []);
 
-  //start camera using camera.js (mirrored)
+  //===== Start camera using her camera.js =====
   useEffect(() => {
     let stream = null;
-    
     async function initCamera() {
       if (!videoRef.current) return;
-      
       try {
-        await startCamera(videoRef.current);
+        await startCamera(videoRef.current); //her helper attaches stream to #video
         stream = videoRef.current.srcObject;
         setIsLoaded(true);
       } catch (err) {
@@ -38,26 +33,17 @@ export default function Homepage() {
         setCameraError(true);
       }
     }
+    if (navigator.mediaDevices?.getUserMedia) initCamera();
+    else setCameraError(true);
 
-    if (navigator.mediaDevices?.getUserMedia) {
-      initCamera();
-    } else {
-      setCameraError(true);
-    }
-
-    //Cleanup function
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
+      if (stream) stream.getTracks().forEach((track) => track.stop());
     };
   }, []);
 
-  //load her virtual-cursor pipeline once Holistic AND camera are ready
+  //===== Load her virtual-cursor pipeline once camera is ready =====
   useEffect(() => {
-    //Don't start cursor until camera is loaded
     if (!isLoaded) return;
-    
     let cancelled = false;
 
     const waitForHolistic = (timeoutMs = 12000) =>
@@ -81,9 +67,8 @@ export default function Homepage() {
       try {
         setBoot("loading");
         await waitForHolistic();
-        //Extra wait to ensure video is really ready
-        await new Promise((r) => setTimeout(r, 500));
-        const url = new URL("../lib/cursor/main.js", import.meta.url).href;
+        await new Promise((r) => setTimeout(r, 300)); //let video settle
+        const url = new URL("../lib/cursor/main.js", import.meta.url).href; //her entrypoint
         await import(/* @vite-ignore */ url);
         console.log("✅ Virtual cursor initialized");
         if (!cancelled) setBoot("ready");
@@ -93,10 +78,60 @@ export default function Homepage() {
       }
     })();
 
-    return () => {
-      cancelled = true;
+    return () => { cancelled = true; };
+  }, [isLoaded]);
+
+  //===== Temporary=====
+  //Looks where the virtual cursor (#cursor) is and clicks the element under it after 600ms hover.
+  useEffect(() => {
+    //only run when page is interactive
+    const cursorEl = typeof document !== "undefined" ? document.getElementById("cursor") : null;
+    if (!cursorEl) return;
+
+    let rafId = 0;
+    let lastTarget = null;
+    let lastStart = 0;
+    const DWELL_MS = 600;
+
+    const isClickable = (el) =>
+      !!(el?.matches && el.matches("button, a, [data-clickable], [role='button']"));
+
+    const findClickable = (el) => {
+      while (el) {
+        if (isClickable(el)) return el;
+        el = el.parentElement;
+      }
+      return null;
     };
-  }, [isLoaded]); //Only run when camera is loaded
+
+    const loop = () => {
+      try {
+        const rect = cursorEl.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+
+        //cursor has pointer-events: none, so elementFromPoint hits what's under it
+        let target = document.elementFromPoint(cx, cy);
+        const clickable = findClickable(target);
+        const now = performance.now();
+
+        if (clickable !== lastTarget) {
+          lastTarget = clickable;
+          lastStart = now;
+        } else if (clickable && now - lastStart >= DWELL_MS) {
+          //Dispatch a real click
+          clickable.click?.();
+          //Prevent rapid re-clicks on same element
+          lastStart = now + 1e9;
+          setTimeout(() => { lastStart = performance.now(); }, 350);
+        }
+      } catch {}
+      rafId = requestAnimationFrame(loop);
+    };
+
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
+  }, [isLoaded, boot]); //after cursor likely running
 
   const pop = (id) =>
     setBubbles((prev) => prev.map((b) => (b.id === id ? { ...b, popped: true } : b)));
@@ -108,20 +143,21 @@ export default function Homepage() {
         <>
           <video
             ref={videoRef}
-            id="video"
+            id="video" //her code references this id
             autoPlay
             playsInline
             muted
             className="absolute inset-0 h-full w-full object-cover"
-            style={{ transform: "scaleX(-1)" }}
+            style={{ transform: "scaleX(-1)" }} //mirror (selfie)
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 via-purple-600/30 to-purple-900/40" />
+          {/* pink/purple gradient tint — IMPORTANT: don't block clicks */}
+          <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 via-purple-600/30 to-purple-900/40 pointer-events-none" />
         </>
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-purple-400 to-pink-500" />
       )}
 
-      {/* ===== HER VIRTUAL CURSOR ===== */}
+      {/* ===== HER VIRTUAL CURSOR (moved by her code) ===== */}
       <div
         id="cursor"
         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -130,15 +166,14 @@ export default function Homepage() {
           height: 24,
           borderRadius: "9999px",
           background: "rgba(255,255,255,0.95)",
-          boxShadow:
-            "0 0 0 2px rgba(59,130,246,0.9), 0 0 10px rgba(255,255,255,0.85)",
+          boxShadow: "0 0 0 2px rgba(59,130,246,0.9), 0 0 10px rgba(255,255,255,0.85)",
           zIndex: 5,
         }}
       />
 
-      {/* ===== DARKER FLOATING BUBBLES (poppable) ===== */}
+      {/* ===== DARKER FLOATING BUBBLES ===== */}
       {!reducedMotion && (
-        <div className="absolute inset-0" style={{ zIndex: 2 }}>
+        <div className="absolute inset-0 pointer-events-auto" style={{ zIndex: 2 }}>
           {bubbles.map((b) =>
             b.popped ? null : (
               <button
@@ -152,11 +187,10 @@ export default function Homepage() {
                   height: `${b.r * 2}px`,
                   marginLeft: `-${b.r}px`,
                   marginTop: `-${b.r}px`,
-                  boxShadow:
-                    "inset 0 0 35px rgba(255,255,255,0.35), 0 8px 24px rgba(0,0,0,0.12)",
+                  boxShadow: "inset 0 0 35px rgba(255,255,255,0.35), 0 8px 24px rgba(0,0,0,0.12)",
                 }}
                 aria-label="Pop bubble"
-                data-clickable=""
+                data-clickable="true"
               />
             )
           )}
@@ -179,32 +213,31 @@ export default function Homepage() {
           <span className="animate-bounce-slow">🎮</span>
         </div>
 
+        {/* ===== Login / Signup as <a> so they're trivially clickable ===== */}
         <div className="flex flex-col sm:flex-row gap-6 mt-8 animate-fade-in-up-delay-3">
-          <Link
-            to="/login"
-            className="group relative overflow-hidden rounded-xl border-2 border-blue-400 bg-white/90 backdrop-blur-sm px-12 py-5 text-xl font-bold text-blue-600 transition-all hover:scale-105 hover:shadow-2xl"
-            aria-label="Login"
-            data-clickable=""
+          <a
+            href="/login"
+            data-clickable="true"
+            className="group relative overflow-hidden rounded-xl border-2 border-blue-400 bg-white/90 backdrop-blur-sm px-12 py-5 text-xl font-bold text-blue-600 transition-all hover:scale-105 hover:shadow-2xl cursor-pointer"
           >
             <span className="relative z-10">Login</span>
             <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             <span className="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
               Let's Go! 🚀
             </span>
-          </Link>
+          </a>
 
-          <Link
-            to="/signup"
-            className="group relative overflow-hidden rounded-xl border-2 border-green-400 bg-white/90 backdrop-blur-sm px-12 py-5 text-xl font-bold text-green-600 transition-all hover:scale-105 hover:shadow-2xl"
-            aria-label="Create Account"
-            data-clickable=""
+          <a
+            href="/signup"
+            data-clickable="true"
+            className="group relative overflow-hidden rounded-xl border-2 border-green-400 bg-white/90 backdrop-blur-sm px-12 py-5 text-xl font-bold text-green-600 transition-all hover:scale-105 hover:shadow-2xl cursor-pointer"
           >
             <span className="relative z-10">Create Account</span>
             <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-green-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             <span className="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
               Join Now! 🎯
             </span>
-          </Link>
+          </a>
         </div>
 
         {!cameraError && (
