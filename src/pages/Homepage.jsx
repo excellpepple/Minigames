@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { startCamera } from "../lib/cursor/camera.js"; // <-- ensure 'Cursor' matches your folder casing
+import { startCamera } from "../lib/cursor/camera.js"; // <-- ensure 'cursor' matches your folder
 
 export default function Homepage() {
   const videoRef = useRef(null);
