@@ -1,0 +1,17 @@
+import { onResultsHandler } from "./cursor.js";
+
+export function createHolisticTracker() {
+  const holistic = new Holistic({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`
+  });
+
+  holistic.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    minDetectionConfidence: 0.7,
+    minTrackingConfidence: 0.7
+  });
+
+  holistic.onResults(onResultsHandler);
+  return holistic;
+}
