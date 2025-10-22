@@ -4,11 +4,6 @@
 let prevX = window.innerWidth / 2;
 let prevY = window.innerHeight / 2;
 
-//initialize hover tracking
-let hoverElement = null;
-let hoverStart = null;
-const HOVER_TIME = 1000;
-
 const cursor = document.getElementById("cursor");
 
 //determine which hand is being detected
@@ -33,8 +28,8 @@ export function onResultsHandler(results) {
 
 
   //make cursor movement smooth
-  prevX += (x - prevX) * 0.3;
-  prevY += (y - prevY) * 0.3;
+  prevX += (x - prevX) * 0.5;
+  prevY += (y - prevY) * 0.5;
 
   //update cursor position
   cursor.style.left = `${prevX}px`;

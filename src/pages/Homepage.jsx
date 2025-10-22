@@ -9,10 +9,10 @@ export default function Homepage() {
   const [boot, setBoot] = useState("init");
 
   const [bubbles, setBubbles] = useState(() => [
-    { id: 1, xPct: 15, yPct: 25, r: 60, popped: false },
-    { id: 2, xPct: 75, yPct: 40, r: 50, popped: false },
-    { id: 3, xPct: 40, yPct: 70, r: 55, popped: false },
-    { id: 4, xPct: 60, yPct: 60, r: 45, popped: false },
+    { id: 1, xPct: 15, yPct: 10, r: 60, popped: false },
+    { id: 2, xPct: 75, yPct: 20, r: 50, popped: false },
+    { id: 3, xPct: 40, yPct: 90, r: 55, popped: false },
+    { id: 4, xPct: 90, yPct: 60, r: 45, popped: false },
   ]);
 
   const reducedMotion = useMemo(() => {
@@ -123,7 +123,7 @@ export default function Homepage() {
           borderRadius: "9999px",
           background: "rgba(255,255,255,0.95)",
           boxShadow: "0 0 0 2px rgba(59,130,246,0.9), 0 0 10px rgba(255,255,255,0.85)",
-          zIndex: 5,
+          zIndex: 1,
         }}
       />
 
