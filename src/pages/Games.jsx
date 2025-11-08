@@ -14,7 +14,7 @@ function UserAvatarSmall({ onClick }) {
   );
 }
 
-//Super animated GameCard
+// Super animated GameCard
 function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
   return (

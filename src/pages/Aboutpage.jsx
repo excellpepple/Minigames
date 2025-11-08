@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+//About Page
 export default function Aboutpage() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-6">
