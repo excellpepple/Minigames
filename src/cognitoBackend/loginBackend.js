@@ -1,4 +1,4 @@
-//This is the file that needs to be running on port 4000,
+// This is the file that needs to be running on port 4000,
 // in order for the login page to call Cognito
 
 import express from "express";
@@ -44,4 +44,3 @@ app.post("/login", async (req, res) => {
 });
 
 app.listen(4000, () => console.log("Backend running on http://localhost:4000"));
-
