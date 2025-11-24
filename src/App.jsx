@@ -8,6 +8,7 @@ import ProfileSetup from "./pages/ProfileSetup.jsx";
 import Games from "./pages/Games.jsx";
 import GamePlay from "./pages/GamePlay.jsx";
 import Aboutpage from "./pages/Aboutpage.jsx";
+import CameraGame from "./pages/CameraGame.jsx";
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/games" element={<Games />} />
         <Route path="/play/:slug" element={<GamePlay />} />
         <Route path="/about" element={<Aboutpage />} />
+                <Route path="/camera-game" element={<CameraGame />} />
         <Route path="*" element={<div className="p-8">Page not found</div>} />
       </Routes>
     </>
