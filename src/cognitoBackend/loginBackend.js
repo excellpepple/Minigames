@@ -1,4 +1,4 @@
-//This is the file that needs to be running on port 4000,
+// This is the file that needs to be running on port 4000,
 // in order for the login page to call Cognito
 
 import express from "express";

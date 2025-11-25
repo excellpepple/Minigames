@@ -25,7 +25,7 @@ export default function GamePlay() {
   const [isGameActive, setIsGameActive] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  //Enter fullscreen when game starts
+  // Enter fullscreen when game starts
   useEffect(() => {
     if (isGameActive && containerRef.current) {
       const element = containerRef.current;

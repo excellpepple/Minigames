@@ -16,3 +16,4 @@ export function createHolisticTracker() {
   holistic.onResults(onResultsHandler);
   return holistic;
 }
+
