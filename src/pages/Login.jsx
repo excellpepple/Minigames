@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 const input =
-  "w-full rounded-md border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200";
+  "w-full rounded-md border border-gray-300 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-3 outline-none transition focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500";
 const btn =
-  "w-full rounded-md border-2 border-sky-400 bg-white px-6 py-3 text-lg font-semibold text-sky-600 transition hover:bg-sky-400 hover:text-white disabled:opacity-50";
+  "w-full rounded-md border-2 border-sky-400 dark:border-sky-500 bg-white dark:bg-slate-800 px-6 py-3 text-lg font-semibold text-sky-600 dark:text-sky-400 transition hover:bg-sky-400 dark:hover:bg-sky-500 hover:text-white disabled:opacity-50";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export default function Login() {
       const response = await fetch("http://localhost:4000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }), // <-- send username
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
@@ -42,7 +42,7 @@ export default function Login() {
         refreshToken: data.RefreshToken,
       });
 
-      navigate("/games");
+      nav("/games");
     } catch (err) {
       console.error("Login error:", err);
       setError(err.message || "Login failed. Please try again.");
@@ -53,9 +53,9 @@ export default function Login() {
 
   // Input Forms
   return (
-    <div className="flex min-h-screen items-center justify-center bg-purple-100 px-6">
-      <div className="w-full max-w-3xl rounded-xl bg-purple-100 p-4">
-        <h1 className="mb-8 text-center text-6xl font-extrabold text-black">
+    <div className="flex min-h-[70vh] items-center justify-center px-6">
+      <div className="w-full max-w-3xl rounded-xl bg-white dark:bg-slate-900 p-6 shadow-lg">
+        <h1 className="mb-8 text-center text-6xl font-extrabold text-black dark:text-slate-100">
           Log In
         </h1>
 
@@ -63,10 +63,14 @@ export default function Login() {
           onSubmit={handleSubmit}
           className="mx-auto w-full max-w-2xl space-y-6"
         >
-          {error && <div className="text-red-600 font-semibold">{error}</div>}
+          {error && (
+            <div className="rounded-md border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400">
+              {error}
+            </div>
+          )}
 
           <div>
-            <label className="mb-2 block text-base font-semibold text-slate-600">
+            <label className="mb-2 block text-base font-semibold text-slate-600 dark:text-slate-300">
               Username
             </label>
             <input
@@ -79,7 +83,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="mb-2 block text-base font-semibold text-slate-600">
+            <label className="mb-2 block text-base font-semibold text-slate-600 dark:text-slate-300">
               Password
             </label>
             <input
@@ -101,7 +105,7 @@ export default function Login() {
         </form>
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-sky-600 hover:underline">
+          <Link to="/" className="text-sky-600 dark:text-sky-400 hover:underline">
             ← Back to Home
           </Link>
         </div>

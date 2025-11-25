@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
-//Extended game metadata with descriptions, controls, and uploader info
+// Extended game metadata with descriptions, controls, and uploader info
 const GAME_DATA = {
   "rock-paper-scissors": {
     title: "Rock Paper Scissors",

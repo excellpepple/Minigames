@@ -6,10 +6,22 @@ import { createHolisticTracker } from "./tracker.js";
 
 const video = document.getElementById("video");
 
+if (!video) {
+  console.error("Video element not found");
+}
+
 const holistic = createHolisticTracker();
 
 (async () => {
-  await startCamera(video);
+  if (!video) {
+    console.error("Cannot start tracking: video element not found");
+    return;
+  }
+  
+  // Start camera only if it's not already initialized
+  if (!video.srcObject) {
+    await startCamera(video);
+  }
   async function processFrame() {
     await holistic.send({ image: video });
     requestAnimationFrame(processFrame);
