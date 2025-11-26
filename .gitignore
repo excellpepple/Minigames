@@ -25,3 +25,4 @@ dist-ssr
 # Ignore node modules
 node_modules/
 
+gesture-recognition/output/compressed/hagrid_static_gestures.npz
