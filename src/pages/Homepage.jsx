@@ -1,6 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { startCamera } from "../lib/tracking/camera.js"; // <-- ensure 'cursor' matches your folder
+import { initHoverClick } from "../lib/cursor/hoverClick.js";
 
 export default function Homepage() {
+  const videoRef = useRef(null);
+  const [cameraError, setCameraError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [boot, setBoot] = useState("init");
+
+  
   const [bubbles, setBubbles] = useState(() => [
     { id: 1, xPct: 15, yPct: 25, r: 60, popped: false },
     { id: 2, xPct: 75, yPct: 40, r: 50, popped: false },

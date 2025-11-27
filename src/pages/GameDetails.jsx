@@ -48,6 +48,21 @@ const GAME_DATA = {
     },
     topScore: 0,
   },
+  "bubble-popper": {
+    title: "Bubble Popper",
+    icon: "🫧",
+    difficulty: "Easy",
+    tags: ["bubbles", "fun", "gesture"],
+    description: "Pop as many colorful floating bubbles as you can! Pop them by hovering with your hand or tapping the screen. Use the camera to track gestures or facial landmarks.",
+    howToPlay: "Move your hand in front of the camera to make the cursor pop bubbles. Each bubble pops instantly and new bubbles spawn. Try to pop as many bubbles as you can in 60 seconds!",
+    controls: "Hand / Nose position (Vision-based)",
+    controlsDetails: "Use a tracked point (index finger or nose) to aim. Hold steady over a bubble to pop or tap/click to pop.",
+    uploader: {
+      name: "Mini Vision Team",
+      description: "A relaxing bubble popping game that demonstrates gesture-based interaction.",
+    },
+    topScore: 0,
+  },
   "pose-runner": {
     title: "Pose Runner",
     icon: "🏃‍♂️🟦",
