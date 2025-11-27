@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { startCamera } from "../lib/tracking/camera.js";
 
 //Animated user avatar with pulse effect
 function UserAvatarSmall({ onClick }) {
@@ -13,7 +14,7 @@ function UserAvatarSmall({ onClick }) {
   );
 }
 
-//Super animated GameCard
+// Super animated GameCard
 function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
   return (
@@ -69,6 +70,9 @@ function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay
 //Main Games page with navigation
 export default function Games() {
   const navigate = useNavigate(); //hook for navigation
+  const videoRef = useRef(null);
+  const [cameraError, setCameraError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const reducedMotion = useMemo(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -84,10 +88,11 @@ export default function Games() {
   );
 
   // Local data for cards
-  const GAMES = [
+    const GAMES = [
     { title: "Rock Paper Scissors", subtitle: "Easy", icon: "✊ ✋ ✌️", slug: "rock-paper-scissors", tags: ["gesture", "vision", "prototype"] },
     { title: "Emoji Challenge", subtitle: "Medium", icon: "🙂 😐 🙁", slug: "emoji-challenge", tags: ["face", "expression", "vision"] },
     { title: "Flappy Bird", subtitle: "Medium", icon: "🐦", slug: "flappy-bird", tags: ["pose", "fun", "classic"] },
+      { title: "Bubble Popper", subtitle: "Easy", icon: "🫧", slug: "bubble-popper", tags: ["bubbles", "fun", "gesture"] },
     { title: "Pose Runner", subtitle: "Hard", icon: "🏃‍♂️🟦", slug: "pose-runner", tags: ["pose", "hard", "prototype"] },
   ];
 
@@ -106,20 +111,54 @@ export default function Games() {
     return matchesQ && matchesTag;
   });
 
-  // Use global video element and show it in this section
   useEffect(() => {
-    const globalVideo = document.getElementById("video");
-    const localVideo = document.getElementById("video-games");
-    if (globalVideo && localVideo && globalVideo.srcObject) {
-      localVideo.srcObject = globalVideo.srcObject;
-      // Make global video visible in this section's context
-      globalVideo.style.opacity = "0";
-    }
-    return () => {
-      if (globalVideo) {
-        globalVideo.style.opacity = "0";
+    let stream = null;
+    async function initCamera() {
+      if (!videoRef.current) return;
+      try {
+        await startCamera(videoRef.current);
+        stream = videoRef.current.srcObject;
+        setIsLoaded(true);
+      } catch (err) {
+        setCameraError(true);
       }
+    }
+    if (navigator.mediaDevices?.getUserMedia) initCamera();
+    else setCameraError(true);
+    return () => {
+      if (stream) stream.getTracks().forEach((t) => t.stop());
     };
+  }, []);
+
+  // Dwell-to-click using homepage virtual cursor if present
+  useEffect(() => {
+    const cursorEl = typeof document !== "undefined" ? document.getElementById("cursor") : null;
+    if (!cursorEl) return;
+    let rafId = 0;
+    let lastTarget = null;
+    let lastStart = 0;
+    const DWELL_MS = 600;
+    const isClickable = (el) => !!(el?.matches && el.matches("button, a, [data-clickable], [role='button']"));
+    const findClickable = (el) => { while (el) { if (isClickable(el)) return el; el = el.parentElement; } return null; };
+    const loop = () => {
+      try {
+        const rect = cursorEl.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        let target = document.elementFromPoint(cx, cy);
+        const clickable = findClickable(target);
+        const now = performance.now();
+        if (clickable !== lastTarget) { lastTarget = clickable; lastStart = now; }
+        else if (clickable && now - lastStart >= DWELL_MS) {
+          clickable.click?.();
+          lastStart = now + 1e9;
+          setTimeout(() => { lastStart = performance.now(); }, 350);
+        }
+      } catch {}
+      rafId = requestAnimationFrame(loop);
+    };
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
   }, []);
 
   function openDetails(slug) {
@@ -129,15 +168,22 @@ export default function Games() {
   return (
     <div className="relative min-h-screen">
       <section className="relative h-[46vh] overflow-hidden rounded-xl bg-slate-100">
-        <video
-          id="video-games"
-          autoPlay
-          playsInline
-          muted
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ transform: "scaleX(-1)" }}
-        />
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/60" />
+        {!cameraError ? (
+          <>
+            <video
+              ref={videoRef}
+              id="video-games"
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 h-full w-full object-cover"
+              style={{ transform: "scaleX(-1)" }}
+            />
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/60" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900" />
+        )}
 
         {!reducedMotion && (
           <div className="absolute inset-0" style={{ zIndex: 2 }}>

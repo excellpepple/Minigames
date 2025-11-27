@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { startCamera } from "../lib/Cursor/camera.js";
+import { startCamera } from "../lib/tracking/camera.js";
 
 /**
  * Custom hook to initialize and manage the virtual cursor system

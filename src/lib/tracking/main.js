@@ -1,8 +1,8 @@
 //start all required processes, including the video background frame to be tracked, and the
 //tracking itself
 
-import { startCamera } from "../tracking/camera.js";
-import { createHolisticTracker } from "../tracking/tracker.js";
+import { startCamera } from "./camera.js";
+import { createHolisticTracker } from "./tracker.js";
 
 const getVideoElement = () => {
   try {
