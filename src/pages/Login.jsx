@@ -13,10 +13,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  function saveUser(user) {
-    localStorage.setItem("currentUser", JSON.stringify(user));
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -35,13 +31,7 @@ export default function Login() {
 
       if (!response.ok) throw new Error(data.error || "Login failed");
 
-      saveUser({
-        username,
-        accessToken: data.AccessToken,
-        idToken: data.IdToken,
-        refreshToken: data.RefreshToken,
-      });
-
+      // TODO: once AWS Cognito session tokens are available, add them here
       nav("/games");
     } catch (err) {
       console.error("Login error:", err);
