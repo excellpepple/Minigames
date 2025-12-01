@@ -7,6 +7,7 @@ import cors from "cors";
 import {
   CognitoIdentityProviderClient,
   InitiateAuthCommand,
+  GetUserCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 
 const app = express();
@@ -28,9 +29,9 @@ app.post("/login", async (req, res) => {
       AuthFlow: "USER_PASSWORD_AUTH",
       ClientId: CLIENT_ID,
       AuthParameters: {
-        USERNAME: username, 
+        USERNAME: username,
         PASSWORD: password,
-        },
+      },
     });
 
     const response = await client.send(command);
@@ -39,11 +40,27 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Authentication failed" });
     }
 
-    res.json(response.AuthenticationResult);
+    // Get user info to extract the Cognito Sub
+    const getUserCommand = new GetUserCommand({
+      AccessToken: response.AuthenticationResult.AccessToken,
+    });
+    const userData = await client.send(getUserCommand);
+    
+    const subAttr = userData.UserAttributes.find(attr => attr.Name === "sub");
+    const cognitoSub = subAttr ? subAttr.Value : null;
+
+    res.json({
+      AccessToken: response.AuthenticationResult.AccessToken,
+      IdToken: response.AuthenticationResult.IdToken,
+      RefreshToken: response.AuthenticationResult.RefreshToken,
+      cognitoSub,
+    });
+
   } catch (err) {
     console.error("Login backend error:", err);
     res.status(400).json({ error: err.message || "Login failed" });
   }
 });
+
 
 app.listen(COGNITO_PORT, () => console.log("Cognito backend running on http://localhost:", COGNITO_PORT));

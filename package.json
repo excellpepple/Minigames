@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-  "dev": "concurrently \"vite\" \"node ./src/backend/loginBackend.js\" \"node ./src/backend/mongoBackend.js\"",
-  "build": "vite build",
-  "lint": "eslint .",
-  "preview": "vite preview"
-},
+    "dev": "concurrently \"vite\" \"node ./src/backend/loginBackend.js\" \"node ./src/backend/mongoBackend.js\"",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "jest --runInBand"
+  },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.932.0",
     "axios": "^1.13.2",
@@ -17,22 +18,28 @@
     "express": "^5.1.0",
     "mongodb": "^7.0.0",
     "mongoose": "^8.19.4",
+    "phaser": "^3.90.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.3"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.28.5",
     "@eslint/js": "^9.36.0",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",
     "autoprefixer": "^10.4.21",
+    "babel-jest": "^30.2.0",
     "concurrently": "^9.2.1",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
+    "jest": "^30.2.0",
+    "mongodb-memory-server": "^10.4.1",
     "postcss": "^8.5.6",
+    "supertest": "^7.1.4",
     "tailwindcss": "^3.4.10",
     "vite": "^7.1.7"
   }

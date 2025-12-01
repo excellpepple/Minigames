@@ -3,9 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 const input =
-  "w-full rounded-md border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200";
+  "w-full rounded-md border border-gray-300 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-3 outline-none transition focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500";
 const btn =
-  "w-full rounded-md border-2 border-sky-400 bg-white px-6 py-3 text-lg font-semibold text-sky-600 transition hover:bg-sky-400 hover:text-white disabled:opacity-50";
+  "w-full rounded-md border-2 border-sky-400 dark:border-sky-500 bg-white dark:bg-slate-800 px-6 py-3 text-lg font-semibold text-sky-600 dark:text-sky-400 transition hover:bg-sky-400 dark:hover:bg-sky-500 hover:text-white disabled:opacity-50";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -16,7 +16,8 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // State variables for Cognito
+
+  //State variables to store communication with cognito
   const [confirmationCode, setConfirmationCode] = useState("");
   const [isSignedUp, setIsSignedUp] = useState(false);
   const [resultMsg, setResultMsg] = useState("");
@@ -33,7 +34,7 @@ export default function Signup() {
     document.body.appendChild(script);
   }, []);
 
-  if (!AmazonCognitoIdentity) return <div>Loading...</div>;
+  if (!AmazonCognitoIdentity) return <div className="flex min-h-[70vh] items-center justify-center">Loading...</div>;
 
   // Having these values here is safe, these alone dont allow access to our user pool in any particularly sensitive way
   // All you can do with this info is sign up or log in
@@ -103,9 +104,9 @@ export default function Signup() {
 
   // ------------------ JSX Form ------------------
   return (
-    <div className="flex min-h-screen items-center justify-center bg-purple-100 px-6">
-      <div className="w-full max-w-md rounded-xl bg-purple-100 p-4">
-        <h1 className="mb-8 text-center text-5xl font-extrabold text-black">Sign Up</h1>
+    <div className="flex min-h-[70vh] items-center justify-center px-6">
+      <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 p-6 shadow-lg">
+        <h1 className="mb-8 text-center text-5xl font-extrabold text-black dark:text-slate-100">Sign Up</h1>
 
         {!isSignedUp ? (
           <form onSubmit={handleSignUp} className="space-y-4">
@@ -163,13 +164,17 @@ export default function Signup() {
         )}
 
         {resultMsg && (
-          <pre className="mt-4 bg-gray-200 p-3 rounded text-sm whitespace-pre-wrap">
+          <div className={`mt-4 rounded-md border px-4 py-3 text-sm whitespace-pre-wrap ${
+            resultMsg.includes("failed") || resultMsg.includes("failed")
+              ? "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+              : "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
+          }`}>
             {resultMsg}
-          </pre>
+          </div>
         )}
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-sky-600 hover:underline">
+          <Link to="/" className="text-sky-600 dark:text-sky-400 hover:underline">
             ← Back to Home
           </Link>
         </div>

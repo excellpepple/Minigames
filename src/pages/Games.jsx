@@ -1,18 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { startCamera } from "../lib/tracking/camera.js";
 
 //Animated user avatar with pulse effect
 function UserAvatarSmall() {
+  const navigate = useNavigate(); // add this
   return (
-    <button className="group inline-flex items-center gap-2">
+    <button
+      className="group inline-flex items-center gap-2"
+      onClick={() => navigate("/profile-setup")} // navigate to your ProfileSetup page
+    >
       <div className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-full border-2 border-sky-400 bg-gradient-to-br from-sky-300 to-sky-500 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl">
         <span className="text-sm font-bold text-white">U</span>
         <div className="absolute inset-0 animate-pulse rounded-full bg-sky-300 opacity-0 group-hover:opacity-30"></div>
       </div>
-      <span className="font-semibold text-sky-700 transition-all group-hover:text-sky-900 group-hover:underline">Profile</span>
+      <span className="font-semibold text-sky-700 transition-all group-hover:text-sky-900 group-hover:underline">
+        Profile
+      </span>
     </button>
   );
 }
+
 
 //Enhanced modal with animation
 function Modal({ open, onClose, title, children }) {
@@ -127,6 +135,14 @@ export default function Games() {
     setSelectedGame(title);
     setDetailsOpen(true);
   }
+  // Local data for cards
+    const GAMES = [
+    { title: "Rock Paper Scissors", subtitle: "Easy", icon: "✊ ✋ ✌️", slug: "rock-paper-scissors", tags: ["gesture", "vision", "prototype"] },
+    { title: "Emoji Challenge", subtitle: "Medium", icon: "🙂 😐 🙁", slug: "emoji-challenge", tags: ["face", "expression", "vision"] },
+    { title: "Flappy Bird", subtitle: "Medium", icon: "🐦", slug: "flappy-bird", tags: ["pose", "fun", "classic"] },
+      { title: "Bubble Popper", subtitle: "Easy", icon: "🫧", slug: "bubble-popper", tags: ["bubbles", "fun", "gesture"] },
+    { title: "Pose Runner", subtitle: "Hard", icon: "🏃‍♂️🟦", slug: "pose-runner", tags: ["pose", "hard", "prototype"] },
+  ];
 
   function handlePlay(game) {
     setNotification(`🎮 Launching ${game}...`);

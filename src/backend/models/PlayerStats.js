@@ -4,11 +4,11 @@
 import mongoose from "mongoose";
 
 const playerStatsSchema = new mongoose.Schema({
-  gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true },
+  gameId: { type: String, required: true },
   playerId: { type: String, required: true }, // store Cognito sub
   totalScore: { type: Number, default: 0 },
   highScore: {type: Number, default: 0},
-  level: { type: Number, default: 1 },
+  level: { type: Number, default: 0 },
   timePlayed: { type: Number, default: 0 }, // in seconds
   achievements: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },

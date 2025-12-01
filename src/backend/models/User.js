@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
   isAdmin: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   userDescription: {type: String, default: ""},
-  profilePicture: {type: String},
+  photo: { type: String, default: "" },
+  emojiAvatar: { type: String, default: "" },
 });
 
 export default mongoose.model("User", userSchema);

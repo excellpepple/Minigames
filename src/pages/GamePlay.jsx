@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import CameraGame from "./CameraGame.jsx";
+import CameraBubble from "./CameraBubble.jsx";
 
 //Common Tailwind CSS button styles for reusability
 const buttonStyle =
@@ -14,28 +16,52 @@ const GAME_DETAILS = {
 };
 
 export default function GamePlay() {
-  //Extracts the dynamic part of the route (like /games/:slug)
   const { slug } = useParams();
-
-  //Gets the metadata for the current game from GAME_DETAILS
-  //If no match, defaults to a generic game
   const currentGame = GAME_DETAILS[slug] || { title: "Game", icons: "🎮" };
 
-  //Player's current score
   const [playerScore, setPlayerScore] = useState(0);
-
-  //AI opponent's current score
   const [computerScore, setComputerScore] = useState(0);
-
-  //Boolean flag to track if the game is running
   const [isGameActive, setIsGameActive] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const containerRef = useRef(null);
 
-  //Starts or restarts the game
+  useEffect(() => {
+    if (isGameActive && containerRef.current) {
+      const element = containerRef.current;
+      if (element.requestFullscreen) {
+        element.requestFullscreen().catch((err) => {
+          console.error("Error attempting to enable fullscreen:", err);
+        });
+      } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+      }
+    }
+  }, [isGameActive]);
+
+  useEffect(() => {
+    return () => {
+      if (
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.msFullscreenElement
+      ) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    };
+  }, []);
+
   function handleStartGame() {
-    setIsGameActive(true);     //sets game as active
-    setPlayerScore(0);         //resets player score
-    setComputerScore(0);       //resets AI score
-    //later: trigger actual game logic (e.g., animations, rounds, etc.)
+    setIsGameActive(true);
+    setPlayerScore(0);
+    setComputerScore(0);
   }
 
   return (
@@ -44,7 +70,7 @@ export default function GamePlay() {
         Game
       </h2>
 
-      <div className="relative rounded-xl bg-purple-100 p-6 md:p-8">
+      <div className="relative rounded-xl bg-purple-100 p-6 md:p-8" ref={containerRef}>
         {/*Score display section */}
         <div className="text-sm md:text-base">
           <div className="font-semibold">
@@ -68,9 +94,19 @@ export default function GamePlay() {
               Start
             </button>
           ) : (
-            <p className="text-lg font-medium text-slate-700">
-              Game in progress... (logic coming soon)
-            </p>
+            <div className="w-full h-full flex items-center justify-center">
+              {slug === "flappy-bird" ? (
+                <CameraGame />
+              ) : slug === "bubble-popper" ? (
+                <CameraBubble />
+              ) : (
+                <div className="w-full max-w-6xl h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+                  <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
+                    Game in progress... (logic coming soon)
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
