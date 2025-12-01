@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 const input =
-  "w-full rounded-md border border-gray-300 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-3 outline-none transition focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500";
+  "w-full rounded-md border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200";
 const btn =
-  "w-full rounded-md border-2 border-sky-400 dark:border-sky-500 bg-white dark:bg-slate-800 px-6 py-3 text-lg font-semibold text-sky-600 dark:text-sky-400 transition hover:bg-sky-400 dark:hover:bg-sky-500 hover:text-white disabled:opacity-50";
+  "w-full rounded-md border-2 border-sky-400 bg-white px-6 py-3 text-lg font-semibold text-sky-600 transition hover:bg-sky-400 hover:text-white disabled:opacity-50";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -66,7 +66,7 @@ export default function Login() {
           {error && <div className="text-red-600 font-semibold">{error}</div>}
 
           <div>
-            <label className="mb-2 block text-base font-semibold text-slate-600 dark:text-slate-300">
+            <label className="mb-2 block text-base font-semibold text-slate-600">
               Username
             </label>
             <input
@@ -79,7 +79,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="mb-2 block text-base font-semibold text-slate-600 dark:text-slate-300">
+            <label className="mb-2 block text-base font-semibold text-slate-600">
               Password
             </label>
             <input
@@ -101,7 +101,7 @@ export default function Login() {
         </form>
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-sky-600 dark:text-sky-400 hover:underline">
+          <Link to="/" className="text-sky-600 hover:underline">
             ← Back to Home
           </Link>
         </div>

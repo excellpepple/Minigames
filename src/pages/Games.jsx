@@ -1,292 +1,246 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { startCamera } from "../lib/Cursor/camera.js";
 
 //Animated user avatar with pulse effect
-function UserAvatarSmall({ onClick }) {
+function UserAvatarSmall() {
   return (
-    <button onClick={onClick} data-clickable="true" aria-label="Open profile" className="group inline-flex items-center gap-2">
-      <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-        <span className="text-sm font-semibold">U</span>
+    <button className="group inline-flex items-center gap-2">
+      <div className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-full border-2 border-sky-400 bg-gradient-to-br from-sky-300 to-sky-500 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl">
+        <span className="text-sm font-bold text-white">U</span>
+        <div className="absolute inset-0 animate-pulse rounded-full bg-sky-300 opacity-0 group-hover:opacity-30"></div>
       </div>
-      <span className="font-semibold text-slate-700 dark:text-slate-300 transition-colors group-hover:text-slate-900 dark:group-hover:text-slate-100">Profile</span>
+      <span className="font-semibold text-sky-700 transition-all group-hover:text-sky-900 group-hover:underline">Profile</span>
     </button>
   );
 }
 
-// Super animated GameCard
-function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay = 0 }) {
-  const [isHovered, setIsHovered] = useState(false);
+//Enhanced modal with animation
+function Modal({ open, onClose, title, children }) {
+  if (!open) return null;
   return (
-    <div
-      className="group relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md"
+    <div className="fixed inset-0 z-50 animate-[fadeIn_0.2s_ease-out]">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 grid place-items-center p-4">
+        <div className="w-full max-w-2xl animate-[slideUp_0.3s_ease-out] rounded-2xl bg-gradient-to-br from-white to-sky-50 p-8 shadow-2xl">
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="bg-gradient-to-r from-sky-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">{title}</h3>
+            <button
+              onClick={onClose}
+              className="rounded-lg border-2 border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-600 transition-all hover:scale-105 hover:border-sky-400 hover:bg-sky-50 hover:shadow-md"
+            >
+              Close
+            </button>
+          </div>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+//Super animated GameCard
+function GameCard({ title, subtitle, icon, onPlay, onView, delay = 0 }) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <div 
+      className="group relative animate-[slideUp_0.5s_ease-out] rounded-2xl border-2 border-sky-300 bg-gradient-to-br from-white to-sky-50 p-6 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
       style={{ animationDelay: `${delay}ms` }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Cover */}
-      <div className="mb-4 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
-        {cover ? (
-          <img src={cover} alt="cover" className="h-28 w-full object-cover" />
-        ) : (
-          <div className="relative grid h-28 w-full place-items-center bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900">
-            <div className={`text-4xl transition-transform ${isHovered ? "scale-110" : "scale-100"}`}>{icon}</div>
-          </div>
-        )}
-      </div>
-
-      {/* Title + subtitle */}
-      <div className="mb-3 flex items-start justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{subtitle} difficulty</p>
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-sky-400/0 to-purple-400/0 opacity-0 transition-opacity duration-300 group-hover:from-sky-400/10 group-hover:to-purple-400/10 group-hover:opacity-100"></div>
+      
+      <div className="relative z-10">
+        <div className="mb-3 flex items-start justify-between">
+          <h3 className="text-2xl font-bold text-slate-800 transition-colors group-hover:text-sky-700">{title}</h3>
+          <span className="rounded-full bg-gradient-to-r from-sky-400 to-purple-400 px-3 py-1 text-xs font-bold text-white shadow-md">{subtitle}</span>
         </div>
-      </div>
 
-      {/* Tags */}
-      {tags?.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {tags.map((t) => (
-            <span key={t} className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:text-slate-300">{t}</span>
-          ))}
+        <div className={`mb-4 text-5xl transition-all duration-300 ${isHovered ? 'scale-110 animate-bounce' : 'scale-100'}`}>
+          {icon}
         </div>
-      )}
 
-      <div className="mb-4 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-600 dark:text-slate-400">
-        Top Score: <span className="font-semibold text-slate-800 dark:text-slate-200">0</span>
+        <div className="mb-4 flex flex-wrap items-center gap-3 text-slate-700">
+          <span className="animate-[pulse_2s_ease-in-out_infinite] rounded-lg border-2 border-green-400 bg-gradient-to-r from-green-50 to-green-100 px-3 py-1.5 text-sm font-semibold shadow-sm">
+            🏆 Wins: <strong className="text-green-700">0</strong>
+          </span>
+          <span className="animate-[pulse_2s_ease-in-out_infinite_0.5s] rounded-lg border-2 border-rose-400 bg-gradient-to-r from-rose-50 to-rose-100 px-3 py-1.5 text-sm font-semibold shadow-sm">
+            💔 Lost: <strong className="text-rose-700">0</strong>
+          </span>
+          <button
+            onClick={onView}
+            className="ml-auto font-semibold text-sky-600 underline-offset-2 transition-all hover:scale-105 hover:text-sky-800 hover:underline"
+          >
+            📊 Details
+          </button>
+        </div>
+
+        {/*Play Now button navigation */}
+        <button
+          onClick={onPlay}
+          className="relative w-full overflow-hidden rounded-xl border-2 border-sky-500 bg-gradient-to-r from-sky-500 to-purple-500 px-6 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95"
+        >
+          <span className="relative z-10">▶️ Play Now!</span>
+          <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-500 group-hover:translate-x-[100%]"></div>
+        </button>
       </div>
+    </div>
+  );
+}
 
-      <button
-        data-clickable="true"
-        onClick={onView}
-        className="w-full rounded-lg bg-sky-600 dark:bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-700 dark:hover:bg-sky-600"
-      >
-        View Details →
-      </button>
+//Floating particle background
+function FloatingParticles() {
+  const particles = Array.from({ length: 15 }, (_, i) => ({
+    id: i,
+    left: `${Math.random() * 100}%`,
+    delay: Math.random() * 5,
+    duration: 3 + Math.random() * 4
+  }));
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {particles.map(p => (
+        <div
+          key={p.id}
+          className="absolute h-2 w-2 animate-[float_3s_ease-in-out_infinite] rounded-full bg-sky-300/40"
+          style={{
+            left: p.left,
+            top: '-10px',
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${p.duration}s`
+          }}
+        />
+      ))}
     </div>
   );
 }
 
 //Main Games page with navigation
 export default function Games() {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedGame, setSelectedGame] = useState("");
+  const [notification, setNotification] = useState("");
   const navigate = useNavigate(); //hook for navigation
-  const videoRef = useRef(null);
-  const [cameraError, setCameraError] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const reducedMotion = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  }, []);
-  const [bubbles, setBubbles] = useState(() =>
-    Array.from({ length: 8 }).map((_, i) => ({
-      id: i + 1,
-      xPct: 8 + ((i * 12) % 84),
-      yPct: 20 + ((i * 9) % 40),
-      r: 16 + (i % 3) * 6,
-      popped: false,
-    }))
-  );
 
-  // Local data for cards
-  const GAMES = [
-    { title: "Rock Paper Scissors", subtitle: "Easy", icon: "✊ ✋ ✌️", slug: "rock-paper-scissors", tags: ["gesture", "vision", "prototype"] },
-    { title: "Emoji Challenge", subtitle: "Medium", icon: "🙂 😐 🙁", slug: "emoji-challenge", tags: ["face", "expression", "vision"] },
-    { title: "Flappy Bird", subtitle: "Medium", icon: "🐦", slug: "flappy-bird", tags: ["pose", "fun", "classic"] },
-    { title: "Pose Runner", subtitle: "Hard", icon: "🏃‍♂️🟦", slug: "pose-runner", tags: ["pose", "hard", "prototype"] },
-  ];
+  function openDetails(title) {
+    setSelectedGame(title);
+    setDetailsOpen(true);
+  }
 
-  // Filters
-  const [query, setQuery] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
-  const allTags = useMemo(() => {
-    const set = new Set();
-    GAMES.forEach(g => g.tags?.forEach(t => set.add(t)));
-    return Array.from(set).sort();
-  }, []);
-  const filtered = GAMES.filter(g => {
-    const q = query.trim().toLowerCase();
-    const matchesQ = !q || g.title.toLowerCase().includes(q) || g.subtitle.toLowerCase().includes(q) || g.tags?.some(t => t.includes(q));
-    const matchesTag = !tagFilter || g.tags?.includes(tagFilter);
-    return matchesQ && matchesTag;
-  });
-
-  useEffect(() => {
-    let stream = null;
-    async function initCamera() {
-      if (!videoRef.current) return;
-      try {
-        await startCamera(videoRef.current);
-        stream = videoRef.current.srcObject;
-        setIsLoaded(true);
-      } catch (err) {
-        setCameraError(true);
-      }
-    }
-    if (navigator.mediaDevices?.getUserMedia) initCamera();
-    else setCameraError(true);
-    return () => {
-      if (stream) stream.getTracks().forEach((t) => t.stop());
-    };
-  }, []);
-
-  // Dwell-to-click using homepage virtual cursor if present
-  useEffect(() => {
-    const cursorEl = typeof document !== "undefined" ? document.getElementById("cursor") : null;
-    if (!cursorEl) return;
-    let rafId = 0;
-    let lastTarget = null;
-    let lastStart = 0;
-    const DWELL_MS = 600;
-    const isClickable = (el) => !!(el?.matches && el.matches("button, a, [data-clickable], [role='button']"));
-    const findClickable = (el) => { while (el) { if (isClickable(el)) return el; el = el.parentElement; } return null; };
-    const loop = () => {
-      try {
-        const rect = cursorEl.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        let target = document.elementFromPoint(cx, cy);
-        const clickable = findClickable(target);
-        const now = performance.now();
-        if (clickable !== lastTarget) { lastTarget = clickable; lastStart = now; }
-        else if (clickable && now - lastStart >= DWELL_MS) {
-          clickable.click?.();
-          lastStart = now + 1e9;
-          setTimeout(() => { lastStart = performance.now(); }, 350);
-        }
-      } catch {}
-      rafId = requestAnimationFrame(loop);
-    };
-    rafId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafId);
-  }, []);
-
-  function openDetails(slug) {
-    navigate(`/game/${slug}`);
+  function handlePlay(game) {
+    setNotification(`🎮 Launching ${game}...`);
+    setTimeout(() => setNotification(""), 2000);
+    navigate(`/play/${game.toLowerCase().replaceAll(" ", "-")}`); //navigate to GamePlay
   }
 
   return (
-    <div className="relative min-h-screen">
-      <section className="relative h-[46vh] overflow-hidden rounded-xl bg-slate-100">
-        {!cameraError ? (
-          <>
-            <video
-              ref={videoRef}
-              id="video-games"
-              autoPlay
-              playsInline
-              muted
-              className="absolute inset-0 h-full w-full object-cover"
-              style={{ transform: "scaleX(-1)" }}
-            />
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/60" />
-          </>
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900" />
-        )}
-
-        {!reducedMotion && (
-          <div className="absolute inset-0" style={{ zIndex: 2 }}>
-            {bubbles.map((b, i) =>
-              b.popped ? null : (
-                <button
-                  key={b.id}
-                  onClick={() => setBubbles((prev) => prev.map((x) => (x.id === b.id ? { ...x, popped: true } : x)))}
-                  className="absolute rounded-full bg-white/30 backdrop-blur-[1.5px] transition-transform hover:scale-105"
-                  style={{
-                    left: `${b.xPct}%`,
-                    top: `${b.yPct}%`,
-                    width: `${b.r * 2}px`,
-                    height: `${b.r * 2}px`,
-                    marginLeft: `-${b.r}px`,
-                    marginTop: `-${b.r}px`,
-                    boxShadow: "inset 0 0 22px rgba(255,255,255,0.35), 0 6px 18px rgba(0,0,0,0.12)",
-                    animation: `float ${5 + (i % 4)}s ease-in-out ${i * 0.2}s infinite`,
-                  }}
-                  aria-label="Pop bubble"
-                  data-clickable="true"
-                />
-              )
-            )}
-          </div>
-        )}
-
-        <div className="relative z-10 flex h-full items-end">
-          <div className="w-full p-8">
-            <div className="flex items-end justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-white">Discover Games</h1>
-                <p className="mt-1 max-w-xl text-sm text-white/85">Pick a game and play hands‑free. Use tags and search to filter.</p>
-              </div>
-              <div className="hidden sm:block rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">Beta</div>
-            </div>
-          </div>
-        </div>
-
-        <style>{`
-          @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
-        `}</style>
-      </section>
+    <div className="relative min-h-screen bg-gradient-to-br from-sky-100 via-purple-100 to-pink-100">
+      <FloatingParticles />
       
-      <div className="relative z-10 mx-auto max-w-6xl p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <UserAvatarSmall onClick={() => navigate("/profile-setup")} />
+      {notification && (
+        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 animate-[slideDown_0.3s_ease-out] rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-3 font-bold text-white shadow-2xl">
+          {notification}
+        </div>
+      )}
+      
+      <div className="relative z-10 mx-auto max-w-5xl p-6">
+        <div className="mb-6 flex animate-[slideDown_0.5s_ease-out] items-center justify-between">
+          <UserAvatarSmall />
           <button 
-            className="inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="group inline-flex items-center gap-2 rounded-lg border-2 border-sky-400 bg-white px-4 py-2 font-semibold text-sky-600 shadow-md transition-all hover:scale-105 hover:bg-sky-50 hover:shadow-lg"
             onClick={() => navigate("/")}
           >
-            ← Back to Home
+            <span className="transition-transform group-hover:-translate-x-1">←</span> Back to Home
           </button>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-6 shadow-sm backdrop-blur">
-          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Game Selection</h1>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Choose a game to get started.</p>
-            </div>
-            <div className="flex w-full max-w-xl flex-col gap-3 md:flex-row md:items-center">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search games…"
-                className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 text-slate-900 dark:text-slate-100"
-              />
-              <select
-                value={tagFilter}
-                onChange={(e) => setTagFilter(e.target.value)}
-                className="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 focus:ring-2 text-slate-900 dark:text-slate-100"
-              >
-                <option value="">All tags</option>
-                {allTags.map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
+        <div className="animate-[slideUp_0.6s_ease-out] rounded-3xl bg-gradient-to-br from-purple-200/80 via-sky-200/80 to-pink-200/80 p-10 shadow-2xl backdrop-blur-sm">
+          <div className="mb-8 text-center">
+            <h1 className="mb-4 bg-gradient-to-r from-sky-600 via-purple-600 to-pink-600 bg-clip-text text-5xl font-black text-transparent animate-[pulse_2s_ease-in-out_infinite]">
+              🎮 Game Selection 🎮
+            </h1>
+            <p className="text-lg font-semibold text-slate-700">
+              Pick your challenge and let the games begin! 🚀
+            </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((g, idx) => (
-              <GameCard
-                key={g.slug}
-                title={g.title}
-                subtitle={g.subtitle}
-                icon={g.icon}
-                tags={g.tags}
-                slug={g.slug}
-                onView={() => openDetails(g.slug)}
-                delay={idx * 60}
-              />
-            ))}
-            {filtered.length === 0 && (
-              <div className="col-span-full rounded-md border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-10 text-center text-sm text-slate-600 dark:text-slate-400">No games match your search.</div>
-            )}
+          <div className="grid gap-6 sm:grid-cols-2">
+            <GameCard
+              title="Rock Paper Scissors"
+              subtitle="Easy"
+              icon="✊ ✋ ✌️"
+              onPlay={() => handlePlay("Rock Paper Scissors")}
+              onView={() => openDetails("Rock Paper Scissors")}
+            />
+            <GameCard
+              title="Emoji Challenge"
+              subtitle="Medium"
+              icon="🙂 😐 🙁"
+              onPlay={() => handlePlay("Emoji Challenge")}
+              onView={() => openDetails("Emoji Challenge")}
+              delay={100}
+            />
+            <GameCard
+              title="Flappy Bird"
+              subtitle="Medium"
+              icon="🐦"
+              onPlay={() => handlePlay("Flappy Bird")}
+              onView={() => openDetails("Flappy Bird")}
+              delay={200}
+            />
+            <GameCard
+              title="Pose Runner"
+              subtitle="Hard"
+              icon="🏃‍♂️🟦"
+              onPlay={() => handlePlay("Pose Runner")}
+              onView={() => openDetails("Pose Runner")}
+              delay={300}
+            />
           </div>
         </div>
       </div>
 
+      <Modal open={detailsOpen} onClose={() => setDetailsOpen(false)} title={`${selectedGame} — Stats`}>
+        <div className="space-y-4">
+          <p className="text-center text-lg text-slate-600">
+            🎯 No stats available yet — start playing to track your progress!
+          </p>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="rounded-xl bg-gradient-to-br from-green-100 to-green-200 p-4 text-center shadow-md">
+              <div className="text-3xl font-bold text-green-700">0</div>
+              <div className="text-sm text-green-600">Games Won</div>
+            </div>
+            <div className="rounded-xl bg-gradient-to-br from-rose-100 to-rose-200 p-4 text-center shadow-md">
+              <div className="text-3xl font-bold text-rose-700">0</div>
+              <div className="text-sm text-rose-600">Games Lost</div>
+            </div>
+            <div className="rounded-xl bg-gradient-to-br from-sky-100 to-sky-200 p-4 text-center shadow-md">
+              <div className="text-3xl font-bold text-sky-700">0</div>
+              <div className="text-sm text-sky-600">Total Played</div>
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       <style>{`
-        @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+          10%, 90% { opacity: 0.5; }
+          100% { transform: translateY(100vh) translateX(20px); opacity: 0; }
+        }
       `}</style>
     </div>
   );
