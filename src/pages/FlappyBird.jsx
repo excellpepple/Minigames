@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { createTracker } from "../lib/tracking/phaserTracker.js";
 import { startCamera } from "../lib/tracking/camera.js";
 
-export default function CameraGame() {
+export default function FlappyBird() {
   //initalize the camera and start tracking
   const videoRef = useRef(null);
   const holisticRef = useRef(null);

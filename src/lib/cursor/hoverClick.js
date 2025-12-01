@@ -1,7 +1,7 @@
 export function initHoverClick(cursorSelector = "#cursor", dwellMs = 600) {
   //retrieve the cursor
-  const cursorEl = document.querySelector(cursorSelector);
-  if (!cursorEl) return () => {};
+  const cursorLocation = document.querySelector(cursorSelector);
+  if (!cursorLocation) return () => {};
 
   
   let rafId = 0; //for request animation frame
