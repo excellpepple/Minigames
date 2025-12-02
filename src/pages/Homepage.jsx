@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { startCamera } from "../lib/cursor/camera.js"; // <-- ensure 'cursor' matches your folder
+import { startCamera } from "../lib/tracking/camera.js"; // <-- ensure 'cursor' matches your folder
+import { initHoverClick } from "../lib/cursor/hoverClick.js";
 
 export default function Homepage() {
   const videoRef = useRef(null);
@@ -68,7 +69,7 @@ export default function Homepage() {
         setBoot("loading");
         await waitForHolistic();
         await new Promise((r) => setTimeout(r, 300)); //let video settle
-        const url = new URL("../lib/cursor/main.js", import.meta.url).href; //her entrypoint
+        const url = new URL("../lib/tracking/main.js", import.meta.url).href; //her entrypoint
         await import(/* @vite-ignore */ url);
         console.log("✅ Virtual cursor initialized");
         if (!cancelled) setBoot("ready");
@@ -81,57 +82,11 @@ export default function Homepage() {
     return () => { cancelled = true; };
   }, [isLoaded]);
 
-  //===== Temporary=====
-  //Looks where the virtual cursor (#cursor) is and clicks the element under it after 600ms hover.
-  useEffect(() => {
-    //only run when page is interactive
-    const cursorEl = typeof document !== "undefined" ? document.getElementById("cursor") : null;
-    if (!cursorEl) return;
-
-    let rafId = 0;
-    let lastTarget = null;
-    let lastStart = 0;
-    const DWELL_MS = 600;
-
-    const isClickable = (el) =>
-      !!(el?.matches && el.matches("button, a, [data-clickable], [role='button']"));
-
-    const findClickable = (el) => {
-      while (el) {
-        if (isClickable(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    };
-
-    const loop = () => {
-      try {
-        const rect = cursorEl.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-
-        //cursor has pointer-events: none, so elementFromPoint hits what's under it
-        let target = document.elementFromPoint(cx, cy);
-        const clickable = findClickable(target);
-        const now = performance.now();
-
-        if (clickable !== lastTarget) {
-          lastTarget = clickable;
-          lastStart = now;
-        } else if (clickable && now - lastStart >= DWELL_MS) {
-          //Dispatch a real click
-          clickable.click?.();
-          //Prevent rapid re-clicks on same element
-          lastStart = now + 1e9;
-          setTimeout(() => { lastStart = performance.now(); }, 350);
-        }
-      } catch {}
-      rafId = requestAnimationFrame(loop);
-    };
-
-    rafId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafId);
-  }, [isLoaded, boot]); //after cursor likely running
+useEffect(() => {
+    if (!isLoaded || boot !== "ready") return;
+    const cleanup = initHoverClick("#cursor", 600);
+    return cleanup;
+  }, [isLoaded, boot]);
 
   const pop = (id) =>
     setBubbles((prev) => prev.map((b) => (b.id === id ? { ...b, popped: true } : b)));
