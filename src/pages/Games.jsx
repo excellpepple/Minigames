@@ -88,10 +88,11 @@ export default function Games() {
   );
 
   // Local data for cards
-  const GAMES = [
+    const GAMES = [
     { title: "Rock Paper Scissors", subtitle: "Easy", icon: "✊ ✋ ✌️", slug: "rock-paper-scissors", tags: ["gesture", "vision", "prototype"] },
     { title: "Emoji Challenge", subtitle: "Medium", icon: "🙂 😐 🙁", slug: "emoji-challenge", tags: ["face", "expression", "vision"] },
     { title: "Flappy Bird", subtitle: "Medium", icon: "🐦", slug: "flappy-bird", tags: ["pose", "fun", "classic"] },
+      { title: "Bubble Popper", subtitle: "Easy", icon: "🫧", slug: "bubble-popper", tags: ["bubbles", "fun", "gesture"] },
     { title: "Pose Runner", subtitle: "Hard", icon: "🏃‍♂️🟦", slug: "pose-runner", tags: ["pose", "hard", "prototype"] },
   ];
 

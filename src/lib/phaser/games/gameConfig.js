@@ -18,7 +18,9 @@ export default function createGame(parentId) {
         gravity: { y: 0 }, // start with no gravity, you can change it in the scene
         debug: false
       }
-    }
+    },
+    // make canvas transparent so camera DOM element can be visible behind it
+    transparent: true
   };
 
   return new Phaser.Game(config);

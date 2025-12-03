@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import CameraGame from "./CameraGame.jsx";
+import CameraBubble from "./CameraBubble.jsx";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Common Tailwind CSS button styles for reusability
@@ -25,7 +27,7 @@ export default function GamePlay() {
   const [isGameActive, setIsGameActive] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  //Enter fullscreen when game starts
+  // Enter fullscreen when game starts
   useEffect(() => {
     if (isGameActive && containerRef.current) {
       const element = containerRef.current;
@@ -146,11 +148,17 @@ export default function GamePlay() {
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="w-full max-w-6xl h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-              <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
-                Game in progress... (logic coming soon)
-              </p>
-            </div>
+            {slug === "flappy-bird" ? (
+              <CameraGame />
+            ) : slug === "bubble-popper" ? (
+              <CameraBubble />
+            ) : (
+              <div className="w-full max-w-6xl h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+                <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
+                  Game in progress... (logic coming soon)
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
