@@ -7,8 +7,8 @@ const btn =
   "w-full rounded-md border-2 border-sky-400 dark:border-sky-500 bg-white dark:bg-slate-800 px-6 py-3 text-lg font-semibold text-sky-600 dark:text-sky-400 transition hover:bg-sky-400 dark:hover:bg-sky-500 hover:text-white disabled:opacity-50";
 
 export default function Login() {
-  const nav = useNavigate();
-  const [username, setUsername] = useState("");
+  const navigate = useNavigate();
+  const [username, setUsername] = useState(""); 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,6 +41,7 @@ export default function Login() {
     }
   }
 
+  // Input Forms
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-6">
       <div className="w-full max-w-3xl rounded-xl bg-white dark:bg-slate-900 p-6 shadow-lg">
