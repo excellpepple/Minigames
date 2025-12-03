@@ -27,6 +27,7 @@ export default function GamePlay() {
   const [isGameActive, setIsGameActive] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  //score information should be saved to the database
   useEffect(() => {
   if (playerScore > highestScore) {
     setHighestScore(playerScore);
