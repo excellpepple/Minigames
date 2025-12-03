@@ -60,7 +60,7 @@ export function useVirtualCursor() {
         setBoot("loading");
         await waitForHolistic();
         await new Promise((r) => setTimeout(r, 300)); // let video settle
-        const url = new URL("../lib/Cursor/main.js", import.meta.url).href;
+        const url = new URL("../lib/tracking/main.js", import.meta.url).href;
         await import(/* @vite-ignore */ url);
         console.log("✅ Virtual cursor initialized");
         if (!cancelled) setBoot("ready");
