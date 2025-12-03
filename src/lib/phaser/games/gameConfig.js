@@ -9,8 +9,10 @@ export default function createGame(parentId) {
     parent: parentId,
     scene: [GameScene],
     scale: {
-      mode: Phaser.Scale.RESIZE,
-      autoCenter: Phaser.Scale.CENTER_BOTH
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      width:800,
+      height:600
     },
     physics: {
       default: 'arcade',   // enable Arcade Physics

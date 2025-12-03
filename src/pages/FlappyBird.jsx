@@ -46,6 +46,7 @@ export default function FlappyBird() {
           width: "100%",
           height: "100%",
           objectFit: "cover",
+          opacity: "0",
           zIndex: 0
         }}
       />

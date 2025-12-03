@@ -13,7 +13,7 @@ import GameDetails from "./pages/GameDetails.jsx";
 import Aboutpage from "./pages/Aboutpage.jsx";
 
 
-import CameraGame from "./pages/CameraGame.jsx";
+import FlappyBird from "./pages/FlappyBird.jsx";
 
 export default function App() {
   const { videoRef, cameraError, isLoaded, boot } = useVirtualCursor();
@@ -127,7 +127,7 @@ export default function App() {
             <Route path="/about" element={<Aboutpage />} />
 
             {/* ⭐ ADD NEW ROUTE HERE */}
-            <Route path="/camera-game" element={<CameraGame />} />
+            <Route path="/flappy-bird" element={<FlappyBird />} />
 
             <Route path="*" element={<div className="p-8">Page not found</div>} />
           </Routes>

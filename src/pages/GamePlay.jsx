@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import CameraGame from "./CameraGame.jsx";
+import FlappyBird from "./FlappyBird.jsx";
 import CameraBubble from "./CameraBubble.jsx";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -149,7 +149,7 @@ export default function GamePlay() {
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             {slug === "flappy-bird" ? (
-              <CameraGame />
+              <FlappyBird />
             ) : slug === "bubble-popper" ? (
               <CameraBubble />
             ) : (

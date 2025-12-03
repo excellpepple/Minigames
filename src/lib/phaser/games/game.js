@@ -52,18 +52,6 @@ export default class GameScene extends Phaser.Scene {
         }
       }
     });
-    
-    //gesture input
-    
-    this.gesture.start();
-    this.gesture = new GestureDetected(this);
-    this.gesture.on("gesture-detected", (g) => {
-      console.log("Detected:", g);
-    });
-
-    this.gesture.on("gesture", (g) => {
-      console.log("Changed:", g);
-    });
 
 
     // Consistently spawn in new pipes
