@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, NavLink, Link } from "react-router-dom";
+import { Routes, Route, NavLink, Link, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext.jsx";
 import { useVirtualCursor, useDwellToClick } from "./hooks/useVirtualCursor.js";
 
@@ -17,22 +17,19 @@ import CameraGame from "./pages/CameraGame.jsx";
 
 export default function App() {
   const { videoRef, cameraError, isLoaded, boot } = useVirtualCursor();
+  const location = useLocation();
 
-  const [virtualCursorEnabled, setVirtualCursorEnabled] = useState(() => {
-    const saved = localStorage.getItem("virtualCursorEnabled");
-    return saved !== null ? saved === "true" : true;
-  });
+  const [virtualCursorEnabled, setVirtualCursorEnabled] = useState(true);
 
-  useEffect(() => {
-    localStorage.setItem("virtualCursorEnabled", virtualCursorEnabled.toString());
-  }, [virtualCursorEnabled]);
+  const isInPlayRoute = location.pathname.startsWith("/play/");
+  const showCursor = virtualCursorEnabled && isLoaded && boot === "ready" && !isInPlayRoute;
 
-  useDwellToClick(virtualCursorEnabled && isLoaded && boot === "ready");
+  useDwellToClick(showCursor);
 
   useEffect(() => {
     const cursor = document.getElementById("cursor");
     if (cursor) {
-      if (virtualCursorEnabled && isLoaded && boot === "ready") {
+      if (showCursor) {
         cursor.style.opacity = "1";
         cursor.style.pointerEvents = "none";
       } else {
@@ -72,8 +69,7 @@ export default function App() {
             boxShadow:
               "0 0 0 2px rgba(59,130,246,0.9), 0 0 10px rgba(255,255,255,0.85)",
             zIndex: 60,
-            opacity:
-              virtualCursorEnabled && isLoaded && boot === "ready" ? 1 : 0,
+            opacity: showCursor ? 1 : 0,
             transition: "opacity 0.3s ease-in-out",
             left: "50%",
             top: "50%",
@@ -94,7 +90,7 @@ export default function App() {
                 { to: "/", label: "Home" },
                 { to: "/games", label: "Games" },
                 { to: "/about", label: "About" },
-                { to: "/login", label: "Login" },
+                { to: "/login", label: "Login" }, // TODO: hide these once the AWS auth session is wired up
                 { to: "/signup", label: "Sign Up" },
               ].map((link) => (
                 <NavLink
@@ -126,7 +122,6 @@ export default function App() {
             <Route path="/play/:slug" element={<GamePlay />} />
             <Route path="/about" element={<Aboutpage />} />
 
-            {/* ⭐ ADD NEW ROUTE HERE */}
             <Route path="/camera-game" element={<CameraGame />} />
 
             <Route path="*" element={<div className="p-8">Page not found</div>} />

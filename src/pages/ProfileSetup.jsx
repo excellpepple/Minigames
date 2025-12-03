@@ -14,28 +14,12 @@ export default function ProfileSetup() {
   const [chosenEmoji, setChosenEmoji] = useState(user.emojiAvatar || "");
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("currentUser");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setUser(parsed);
-      setDisplayName(parsed.name || "");
-      setUsername(parsed.email?.split("@")[0] || "");
-    }
-  }, []);
-
-  useEffect(() => {
-    // keep localStorage in sync
-    localStorage.setItem("currentUser", JSON.stringify({ ...user, name: displayName, email: username ? `${username}@example.com` : user.email }));
-  }, [user, displayName, username]);
-
   function handleContinue() {
     nav("/games");
   }
 
   function handleEditSave() {
     if (isEditing) {
-      // Save changes (already saved to localStorage via useEffect)
       setIsEditing(false);
     } else {
       // Enter edit mode

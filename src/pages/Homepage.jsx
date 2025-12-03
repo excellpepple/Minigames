@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { startCamera } from "../lib/tracking/camera.js"; // <-- ensure 'cursor' matches your folder
-import { initHoverClick } from "../lib/cursor/hoverClick.js";
+import { initHoverClick } from "../lib/cursor/hoverClick.js"; 
 
 export default function Homepage() {
   const videoRef = useRef(null);
+  const audioRef = useRef(null);
   const [cameraError, setCameraError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [boot, setBoot] = useState("init");
@@ -21,6 +22,18 @@ export default function Homepage() {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   }, []);
 
+  // Initialize audio
+  useEffect(() => {
+    audioRef.current = new Audio('/audio/bubble_pop_sound.mp3');
+    audioRef.current.volume = 0.5; // Set volume to 50%
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
   // Show video background on Homepage
   useEffect(() => {
     const video = document.getElementById("video");
@@ -34,54 +47,16 @@ export default function Homepage() {
     };
   }, []);
 
-  //===== Load her virtual-cursor pipeline once camera is ready =====
-  useEffect(() => {
-    if (!isLoaded) return;
-    let cancelled = false;
-
-    const waitForHolistic = (timeoutMs = 12000) =>
-      new Promise((resolve, reject) => {
-        const start = Date.now();
-        (function check() {
-          if (cancelled) return;
-          const ok =
-            (typeof window !== "undefined" && window.Holistic) ||
-            (typeof window !== "undefined" &&
-              window.holistic &&
-              window.holistic.Holistic);
-          if (ok) return resolve();
-          if (Date.now() - start > timeoutMs)
-            return reject(new Error("Holistic not available"));
-          requestAnimationFrame(check);
-        })();
+  const pop = (id) => {
+    // Play pop sound (same as BubblePop game)
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => {
+        console.log("Homepage bubble sound failed:", err);
       });
-
-    (async () => {
-      try {
-        setBoot("loading");
-        await waitForHolistic();
-        await new Promise((r) => setTimeout(r, 300)); //let video settle
-        const url = new URL("../lib/tracking/main.js", import.meta.url).href; //her entrypoint
-        await import(/* @vite-ignore */ url);
-        console.log("✅ Virtual cursor initialized");
-        if (!cancelled) setBoot("ready");
-      } catch (e) {
-        console.error("❌ Failed to init virtual cursor:", e);
-        if (!cancelled) setBoot("error");
-      }
-    })();
-
-    return () => { cancelled = true; };
-  }, [isLoaded]);
-
-useEffect(() => {
-    if (!isLoaded || boot !== "ready") return;
-    const cleanup = initHoverClick("#cursor", 600);
-    return cleanup;
-  }, [isLoaded, boot]);
-
-  const pop = (id) =>
+    }
     setBubbles((prev) => prev.map((b) => (b.id === id ? { ...b, popped: true } : b)));
+  };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center">

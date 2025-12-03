@@ -1,4 +1,3 @@
-import { GestureDetected } from '../../gesture/gesture.js';
 import { TrackingInput } from '../inputs/trackingInputs.js';
 
 export default class GameScene extends Phaser.Scene {
@@ -13,6 +12,11 @@ export default class GameScene extends Phaser.Scene {
     this.load.image('pipe_bottom', '/assets/pipe-green-bottom.png');
     this.load.image('ground', '/assets/ground-sprite.png');
     this.load.image('player', '/assets/bird-blue-sprite.png');
+
+    // Basic audio: background track, death, and point ding
+    this.load.audio('bg_track', '/audio1/bg_track.mp3');
+    this.load.audio('die', '/audio1/die.mp3');
+    this.load.audio('point', '/audio1/point.mp3');
   }
 
   create() {
@@ -34,6 +38,12 @@ export default class GameScene extends Phaser.Scene {
     this.player.body.allowGravity = true;
     this.gravityEnabled = false;
 
+    // Audio instances
+    this.bgMusic = this.sound.add('bg_track', { loop: true, volume: 0.5 });
+    this.dieSound = this.sound.add('die', { volume: 0.7 });
+    this.pointSound = this.sound.add('point', { volume: 0.6 });
+    this.bgMusic.play();
+
     // Nose tracking input
     //Only start gravity after the tracking is loaded
     this.tracking = new TrackingInput(this);
@@ -52,19 +62,6 @@ export default class GameScene extends Phaser.Scene {
         }
       }
     });
-    
-    //gesture input
-    
-    this.gesture.start();
-    this.gesture = new GestureDetected(this);
-    this.gesture.on("gesture-detected", (g) => {
-      console.log("Detected:", g);
-    });
-
-    this.gesture.on("gesture", (g) => {
-      console.log("Changed:", g);
-    });
-
 
     // Consistently spawn in new pipes
     this.pipes = this.physics.add.group();
@@ -123,6 +120,9 @@ export default class GameScene extends Phaser.Scene {
         pipe.scored = true;
         this.score++;
         this.scoreText.setText(this.score);
+        if (this.pointSound) {
+          this.pointSound.play();
+        }
       }
 
       if (pipe.x < -50) pipe.destroy();
@@ -135,6 +135,13 @@ export default class GameScene extends Phaser.Scene {
 
     this.isGameOver = true;
     this.physics.pause();
+
+    if (this.bgMusic) {
+      this.bgMusic.stop();
+    }
+    if (this.dieSound) {
+      this.dieSound.play();
+    }
 
     this.add.text(
       this.scale.width / 2 - 60,
@@ -152,5 +159,6 @@ export default class GameScene extends Phaser.Scene {
   //used to stop the tracking when you leave the page
   shutdown() {
     if (this.tracking) this.tracking.stop();
+    if (this.bgMusic) this.bgMusic.stop();
   }
 }
