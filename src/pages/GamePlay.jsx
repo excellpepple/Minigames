@@ -27,6 +27,12 @@ export default function GamePlay() {
   const [isGameActive, setIsGameActive] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  useEffect(() => {
+  if (playerScore > highestScore) {
+    setHighestScore(playerScore);
+  }
+}, [playerScore, highestScore]);
+
   // Enter fullscreen when game starts
   useEffect(() => {
     if (isGameActive && containerRef.current) {
@@ -149,7 +155,7 @@ export default function GamePlay() {
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             {slug === "flappy-bird" ? (
-              <FlappyBird />
+              <FlappyBird onScoreChange={setPlayerScore}/>
             ) : slug === "bubble-popper" ? (
               <CameraBubble />
             ) : (
