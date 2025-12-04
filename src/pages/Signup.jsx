@@ -83,6 +83,8 @@ export default function Signup() {
     });
   }
 
+
+  // Input Forms
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-6">
       <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 p-6 shadow-lg">

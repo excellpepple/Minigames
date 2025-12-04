@@ -7,17 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
-node_modules/
 node_modules
-node_modules*/
-*node_modules*
-**/node_modules/**
-**/*node_modules*/**
-node_modules 3.43.34 PM/
-"node_modules 3.43.34 PM/"
-
-# Build outputs
 dist
 dist-ssr
 *.local
@@ -32,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Ignore node modules
+node_modules/
+
+gesture-recognition/output/compressed/hagrid_static_gestures.npz
+gesture-recognition/model/tfjs-env

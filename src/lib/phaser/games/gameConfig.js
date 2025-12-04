@@ -23,6 +23,10 @@ export default function createGame(parentId) {
     transparent: true
   };
 
+<<<<<<< HEAD
   const game = new Phaser.Game(config);
   return game;
+=======
+  return new Phaser.Game(config);
+>>>>>>> 94a84f30d7b1869b16bc4ae9606bdce50990e346
 }
