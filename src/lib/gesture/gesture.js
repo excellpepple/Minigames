@@ -12,6 +12,61 @@ function flattenHand(landmarks, handPrefix) {
 
     return handLandmarks.flatMap(l => [l.x, l.y, l.z]);
 }
+//TODO: Add a config method to the gesture input to change stability controls.
+// ---- Stability System State ----
+const WINDOW = 5;
+const MIN_CONF = 0.65;
+const HOLD_FRAMES = 3;
+
+let smoothBuffer = [];
+let lockedGesture = null;
+let holdCount = 0;
+
+// Utility: majority vote
+function mode(arr) {
+    const freq = {};
+    for (const x of arr) freq[x] = (freq[x] || 0) + 1;
+    return Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];
+}
+
+// Stable gesture logic
+function processStableGesture(predArray) {
+    const maxIndex = predArray.indexOf(Math.max(...predArray));
+    const confidence = predArray[maxIndex];
+
+    // Low confidence: ignore frame entirely
+    if (confidence < MIN_CONF) {
+        return lockedGesture;
+    }
+
+    // Add to smoothing buffer
+    smoothBuffer.push(maxIndex);
+    if (smoothBuffer.length > WINDOW) smoothBuffer.shift();
+
+    const smoothed = Number(mode(smoothBuffer));
+
+    // Initial lock
+    if (lockedGesture === null) {
+        lockedGesture = smoothed;
+        return lockedGesture;
+    }
+
+    if (smoothed === lockedGesture) {
+        holdCount = 0;
+        return lockedGesture;
+    }
+
+    // Gesture differs, increase hold count
+    holdCount++;
+
+    // After enough stable frames, switch gesture
+    if (holdCount >= HOLD_FRAMES) {
+        lockedGesture = smoothed;
+        holdCount = 0;
+    }
+
+    return lockedGesture;
+}
 
 export class GestureDetected extends Phaser.Events.EventEmitter {
     constructor(scene) {
@@ -34,52 +89,37 @@ export class GestureDetected extends Phaser.Events.EventEmitter {
         this._unsubscribe = onLandmarks(async (landmarks) => {
             if (!this.model || !landmarks || !landmarks.length) return;
 
-            // Try right hand first, then left hand
-            const flatInput = flattenHand(landmarks, "right_hand") || flattenHand(landmarks, "left_hand");
+            const flatInput =
+                flattenHand(landmarks, "right_hand") ||
+                flattenHand(landmarks, "left_hand");
+
             if (!flatInput) return;
-
-            // Logging for debugging
-            // console.log("Flat input length:", flatInput.length);
-
-            // console.log("Flat input is Array?", Array.isArray(flatInput));
-            // console.log("Flat input all numbers?", flatInput.every(n => typeof n === "number"));
-
-            // console.log("First 5 landmark triplets:");
-            // for (let i = 0; i < 5; i++) {
-            //     const base = i * 3;
-            //     console.log(`L${i}: x=${flatInput[base]}, y=${flatInput[base + 1]}, z=${flatInput[base + 2]}`);
-            // }
 
             let output;
             try {
-                
-                output = this.model.predict(flatInput);
-                // console.log("Raw model output (first 5 values):", Array.from(output).slice(0, 5));
+                output = this.model.predict(flatInput);   // Float32Array softmax
             } catch (err) {
                 console.error("Prediction error:", err);
                 return;
             }
 
+            // Use stability logic
+            const stableIndex = processStableGesture(output);
+            if (stableIndex == null) return;
 
+            const gestureName = this._mapGesture(stableIndex);
+            if (!gestureName) return;
 
-            const gestureIndex = this._argmax(output);
-            const gestureName = this._mapGesture(gestureIndex);
-
-            if (!gestureName) {
-                console.warn("No gesture matched for index", gestureIndex);
-                return;
-            }
-            
-
+            // Emit continuous state
             this.emit("gesture-detected", gestureName);
 
+            // Emit change events
             if (gestureName !== this.prevGesture) {
                 this.prevGesture = gestureName;
                 this.emit("gesture-changed", gestureName);
             }
-
-            // console.log("Detected gesture:", gestureName);
         });
+
 
         console.log("Gesture tracking started");
     }

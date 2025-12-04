@@ -1,3 +1,5 @@
+//normalScalars.js
+//TODO: Should be loading this data from a json file created from the model instead
 const dataMin = [
 -0.146558404, -0.0640259087, -0.00000411864721, -0.0389925092,
 -0.0218732357, -0.397763282, -0.0103174448, -0.0149291307,
