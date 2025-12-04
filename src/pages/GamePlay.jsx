@@ -77,6 +77,10 @@ export default function GamePlay() {
 
   function handleScoreUpdate(newScore) {
     setPlayerScore(newScore);
+    // Update highest score if current score exceeds it (for bubble-popper only)
+    if (slug === "bubble-popper" && newScore > highestScore) {
+      setHighestScore(newScore);
+    }
   }
 
   function handleGoBack() {
@@ -98,7 +102,7 @@ export default function GamePlay() {
       {/* Top Right Corner - Scores and Menu */}
       <div className="fixed top-4 right-4 z-50 flex flex-col items-end gap-3">
         {/* Score Display - Top Right */}
-        {(isGameActive || gameEnded) && (
+        {(isGameActive || gameEnded) && slug !== "flappy-bird" && (
           <div className="flex flex-col gap-2 rounded-lg border border-slate-200 dark:border-slate-900 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-4 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="text-right">
@@ -107,10 +111,10 @@ export default function GamePlay() {
               </div>
               {slug !== "bubble-popper" && (
                 <>
-                  <div className="text-right">
-                    <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">AI Score</div>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{computerScore}</div>
-                  </div>
+              <div className="text-right">
+                <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">AI Score</div>
+                <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{computerScore}</div>
+              </div>
                 </>
               )}
               <div className="text-right">
@@ -184,11 +188,11 @@ export default function GamePlay() {
             ) : slug === "bubble-popper" ? (
               <BubblePop onGameEnd={handleGameEnd} onScoreUpdate={handleScoreUpdate} />
             ) : (
-              <div className="w-full max-w-6xl h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-                <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
-                  Game in progress... (logic coming soon)
-                </p>
-              </div>
+            <div className="w-full max-w-6xl h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+              <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
+                Game in progress... (logic coming soon)
+              </p>
+            </div>
             )}
           </div>
         )}

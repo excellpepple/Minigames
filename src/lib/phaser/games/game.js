@@ -119,7 +119,7 @@ export default class GameScene extends Phaser.Scene {
       if (!pipe.scored && pipe.y > this.scale.height / 2 && pipe.x < this.player.x) {
         pipe.scored = true;
         this.score++;
-        this.scoreText.setText(this.score);
+        this.scoreText.setText(this.score.toString());
         if (this.pointSound) {
           this.pointSound.play();
         }
