@@ -25,7 +25,7 @@ export default class GameScene extends Phaser.Scene {
   create() {
     // ⭐ REGISTER CLEANUP HANDLERS FOR SCENE SHUTDOWN
     this.events.on("shutdown", () => this._cleanup());
-    this.events.on("destroy", () => this._cleanup()); // failsafe
+    this.events.on("destroy", () => this._cleanup());
 
     // Background
     this.background = this.add.image(this.scale.width / 2, this.scale.height / 2, 'background');
@@ -50,12 +50,12 @@ export default class GameScene extends Phaser.Scene {
     this.pointSound = this.sound.add('point', { volume: 0.6 });
     this.bgMusic.play();
 
-    // ⭐ TRACKING INPUT (NOSE LANDMARKS)
+    // ⭐ TRACKING INPUT
     this.tracking = new TrackingInput(this);
     this.tracking.start();
 
     this.tracking.on('landmarks', (landmarks) => {
-      if (!this.player || this.isGameOver) return;  // ⭐ prevents undefined crashes
+      if (!this.player || this.isGameOver) return;
 
       const nose = landmarks.find(l => l.name === 'nose_tip');
       if (nose) {
@@ -70,12 +70,10 @@ export default class GameScene extends Phaser.Scene {
       }
     });
 
-    // ⭐ GESTURE TRACKING
+    // ⭐ GESTURE INPUT
     this.gesture = new GestureDetected(this);
     this.gesture.start();
-
     this.gesture.on("gesture-changed", gesture => {
-      console.log(`Gesture Detected: ${gesture}`);
       if (gesture === "mute") this.bgMusic.stop();
     });
 
@@ -126,13 +124,24 @@ export default class GameScene extends Phaser.Scene {
     if (this.isGameOver) return;
 
     this.pipes.getChildren().forEach(pipe => {
+      // ⭐ SCORE CALCULATION FIX + REACT CALLBACK
       if (!pipe.scored && pipe.y > this.scale.height / 2 && pipe.x < this.player.x) {
         pipe.scored = true;
         this.score++;
         this.scoreText.setText(this.score.toString());
 
+        // ⭐ SEND SCORE UPDATE TO REACT (the missing piece!)
+        if (this.onScoreChange) {
+          try {
+            this.onScoreChange(this.score);
+          } catch (err) {
+            console.warn("Score callback failed:", err);
+          }
+        }
+
         if (this.pointSound) this.pointSound.play();
       }
+
       if (pipe.x < -50) pipe.destroy();
     });
   }
@@ -158,7 +167,7 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-  // ⭐ REAL CLEANUP FUNCTION (CALLED BY EVENTS)
+  // ⭐ CLEANUP CALLED ON DESTROY/SHUTDOWN
   _cleanup() {
     if (this.tracking) {
       this.tracking.stop();
@@ -176,3 +185,4 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 }
+

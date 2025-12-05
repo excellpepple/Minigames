@@ -7,9 +7,9 @@ import Homepage from "./pages/Homepage.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import ProfileSetup from "./pages/ProfileSetup.jsx";
-import Games from "./pages/Games.jsx";
-import GamePlay from "./pages/GamePlay.jsx";
-import GameDetails from "./pages/GameDetails.jsx";
+import Games from "./pages/play/Games.jsx";
+import GamePlay from "./pages/play/GamePlay.jsx";
+import GameDetails from "./pages/play/GameDetails.jsx";
 import Aboutpage from "./pages/Aboutpage.jsx";
 
 import FlappyBird from "./pages/play/FlappyBird.jsx";

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { startCamera } from "../lib/tracking/camera.js";
+import { startCamera } from "../../lib/tracking/camera.js";
 
 //Animated user avatar with pulse effect
 function UserAvatarSmall({ onClick }) {
