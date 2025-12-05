@@ -96,7 +96,7 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
           x: rect.left + rect.width / 2,
           y: rect.top + rect.height / 2,
         };
-      }
+       }
       requestAnimationFrame(updateCursorPosition);
     };
 
