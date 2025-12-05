@@ -26,3 +26,4 @@ export default function createGame(parentId, { onScoreChange } = {}) {
 
   const game = new Phaser.Game(config);
   return game;
+}
