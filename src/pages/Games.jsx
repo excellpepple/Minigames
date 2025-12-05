@@ -29,8 +29,18 @@ function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay
         {cover ? (
           <img src={cover} alt="cover" className="h-28 w-full object-cover" />
         ) : (
-          <div className="relative grid h-28 w-full place-items-center bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900">
-            <div className={`text-4xl transition-transform ${isHovered ? "scale-110" : "scale-100"}`}>{icon}</div>
+          <div className="relative h-28 w-full">
+            {icon?.startsWith('/') || icon?.startsWith('http') || icon?.startsWith('./') || icon?.startsWith('../') ? (
+              <img
+                src={icon}
+                alt={title}
+                className={`h-full w-full object-cover transition-transform ${isHovered ? "scale-110" : "scale-100"}`}
+              />
+            ) : (
+              <div className="grid h-full w-full place-items-center bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900">
+                <div className={`text-4xl transition-transform ${isHovered ? "scale-110" : "scale-100"}`}>{icon}</div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -88,12 +98,10 @@ export default function Games() {
   );
 
   // Local data for cards
-    const GAMES = [
-    { title: "Rock Paper Scissors", subtitle: "Easy", icon: "✊ ✋ ✌️", slug: "rock-paper-scissors", tags: ["gesture", "vision", "prototype"] },
-    { title: "Emoji Challenge", subtitle: "Medium", icon: "🙂 😐 🙁", slug: "emoji-challenge", tags: ["face", "expression", "vision"] },
-    { title: "Flappy Bird", subtitle: "Medium", icon: "🐦", slug: "flappy-bird", tags: ["pose", "fun", "classic"] },
-      { title: "Bubble Popper", subtitle: "Easy", icon: "🫧", slug: "bubble-popper", tags: ["bubbles", "fun", "gesture"] },
-    { title: "Pose Runner", subtitle: "Hard", icon: "🏃‍♂️🟦", slug: "pose-runner", tags: ["pose", "hard", "prototype"] },
+  const GAMES = [
+    { title: "Rock Paper Scissors", subtitle: "Easy", icon: "/game_covers/RPS.png", slug: "rock-paper-scissors", tags: ["gesture", "vision", "prototype"] },
+    { title: "Flappy Bird", subtitle: "Medium", icon: "/game_covers/Birdie.png", slug: "flappy-bird", tags: ["pose", "fun", "classic"] },
+    { title: "Bubble Popper", subtitle: "Easy", icon: "/game_covers/Bubbles.png", slug: "bubble-popper", tags: ["bubbles", "fun", "gesture"] },
   ];
 
   // Filters
@@ -235,11 +243,11 @@ export default function Games() {
           @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
         `}</style>
       </section>
-      
+
       <div className="relative z-10 mx-auto max-w-6xl p-6">
         <div className="mb-6 flex items-center justify-between">
           <UserAvatarSmall onClick={() => navigate("/profile-setup")} />
-          <button 
+          <button
             className="inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800"
             onClick={() => navigate("/")}
           >
