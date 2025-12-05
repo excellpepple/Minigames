@@ -1,8 +1,10 @@
 import { TrackingInput } from '../inputs/trackingInputs.js';
 
 export default class GameScene extends Phaser.Scene {
-  constructor() {
+  constructor({ onScoreChange } = {}) {
     super('GameScene');
+
+    this.onScoreChange = onScoreChange || (() => {});
   }
 
   preload() {
@@ -144,8 +146,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.add.text(
-      this.scale.width / 2 - 60,
-      this.scale.height / 2 - 20,
+      this.scale.width / 4,
+      this.scale.height/4 ,
       "GAME OVER, SPACE TO RESTART",
       { fontSize: '32px', fill: '#ff0000' }
     );

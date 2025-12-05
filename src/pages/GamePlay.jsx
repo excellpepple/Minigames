@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import FlappyBird from "./FlappyBird.jsx";
+import CameraBubble from "./CameraBubble.jsx";
 import CameraGame from "./CameraGame.jsx";
 import BubblePop from "./BubblePop.jsx";
 import { useParams, useNavigate } from "react-router-dom";
@@ -28,6 +30,13 @@ export default function GamePlay() {
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  //score information should be saved to the database
+  useEffect(() => {
+  if (playerScore > highestScore) {
+    setHighestScore(playerScore);
+  }
+}, [playerScore, highestScore]);
 
   // Enter fullscreen when game starts
   useEffect(() => {
@@ -184,7 +193,7 @@ export default function GamePlay() {
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             {slug === "flappy-bird" ? (
-              <CameraGame />
+              <FlappyBird onScoreChange={setPlayerScore}/>
             ) : slug === "bubble-popper" ? (
               <BubblePop onGameEnd={handleGameEnd} onScoreUpdate={handleScoreUpdate} />
             ) : (
