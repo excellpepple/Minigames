@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { createTracker } from "../lib/tracking/phaserTracker.js";
 import { startCamera } from "../lib/tracking/camera.js";
 
-export default function FlappyBird() {
+export default function FlappyBird({ onScoreChange }) {
   //initalize the camera and start tracking
   const videoRef = useRef(null);
   const holisticRef = useRef(null);
@@ -28,10 +28,10 @@ export default function FlappyBird() {
       //import the games config to use it's 'create game' function, which will put the game in the container on the webpage
       import("../lib/phaser/games/gameConfig.js").then(({ default: createGame }) => {
         const container = document.getElementById("game-container");
-        if (container) createGame("game-container");
+        if (container) createGame("game-container", { onScoreChange });
       });
     }
-  }, []);
+  }, [onScoreChange]);
 //styling for the video feed, and then the game container.
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
@@ -46,6 +46,7 @@ export default function FlappyBird() {
           width: "100%",
           height: "100%",
           objectFit: "cover",
+          opacity: "0",
           zIndex: 0
         }}
       />
