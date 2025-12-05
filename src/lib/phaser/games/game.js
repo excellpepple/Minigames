@@ -68,7 +68,7 @@ export default class GameScene extends Phaser.Scene {
     this.gesture = new GestureDetected(this);
     this.gesture.start(); // always start this after the normal tracking code
     this.gesture.on("gesture-changed", gesture => {
-      //console.log(`Gesture Detected: ${gesture}`)
+      console.log(`Gesture Detected: ${gesture}`)
 
       if (gesture == "mute"){
         this.bgMusic.stop();
