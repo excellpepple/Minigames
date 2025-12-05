@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
-import { createTracker } from "../lib/tracking/phaserTracker.js";
-import { startCamera } from "../lib/tracking/camera.js";
+import { createTracker } from "../../lib/tracking/phaserTracker.js";
+import { startCamera } from "../../lib/tracking/camera.js";
 
 export default function CameraBubble() {
   const videoRef = useRef(null);
@@ -48,7 +48,7 @@ export default function CameraBubble() {
           return;
         }
         
-        import("../lib/phaser/games/bubbleGameConfig.js").then((module) => {
+        import("../../lib/phaser/games/bubbleGameConfig.js").then((module) => {
           // destroy any previous game instance on this container
           if (container._phaserGame) {
             try { container._phaserGame.destroy(true); } catch (e) {}

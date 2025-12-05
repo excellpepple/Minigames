@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { startCamera } from "../lib/tracking/camera.js";
+import { startCamera } from "../../lib/tracking/camera.js";
 
 export default function BubblePop({ onGameEnd, onScoreUpdate }) {
   const videoRef = useRef(null);

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import FlappyBird from "./FlappyBird.jsx";
-import CameraBubble from "./CameraBubble.jsx";
-import CameraGame from "./CameraGame.jsx";
-import BubblePop from "./BubblePop.jsx";
-import MainGame from "./MainGame.jsx";
+import FlappyBird from "./play/FlappyBird.jsx";
+import CameraBubble from "./play/CameraBubble.jsx";
+import CameraGame from "./play/CameraGame.jsx";
+import BubblePop from "./play/BubblePop.jsx";
+import MainGame from "./play/MainGame.jsx";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Common Tailwind CSS button styles for reusability
