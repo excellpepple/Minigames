@@ -75,6 +75,9 @@ export default class GameScene extends Phaser.Scene {
       if (gesture == "mute"){
         this.bgMusic.stop();
       }
+      if (gesture == "call"){
+        this.bgMusic.play();
+      }
     })
 
     // Consistently spawn in new pipes
