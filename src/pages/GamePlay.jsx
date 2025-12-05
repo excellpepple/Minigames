@@ -3,7 +3,9 @@ import FlappyBird from "./FlappyBird.jsx";
 import CameraBubble from "./CameraBubble.jsx";
 import CameraGame from "./CameraGame.jsx";
 import BubblePop from "./BubblePop.jsx";
+import FlappyBird from "./MainGame.jsx";
 import { useParams, useNavigate } from "react-router-dom";
+import MainGame from "./MainGame.jsx";
 
 // Common Tailwind CSS button styles for reusability
 const buttonStyle =
@@ -195,7 +197,12 @@ export default function GamePlay() {
             {slug === "flappy-bird" ? (
               <FlappyBird onScoreChange={setPlayerScore}/>
             ) : slug === "bubble-popper" ? (
-              <BubblePop onGameEnd={handleGameEnd} onScoreUpdate={handleScoreUpdate} />
+              <BubblePop
+                onGameEnd={handleGameEnd}
+                onScoreUpdate={handleScoreUpdate}
+              />
+            ) : slug === "rock-paper-scissors" ? (
+              <MainGame/>
             ) : (
             <div className="w-full max-w-6xl h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
               <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
