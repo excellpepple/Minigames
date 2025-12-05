@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import FlappyBird from "./FlappyBird.jsx";
 import CameraBubble from "./CameraBubble.jsx";
+import CameraGame from "./CameraGame.jsx";
+import BubblePop from "./BubblePop.jsx";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Common Tailwind CSS button styles for reusability
@@ -12,6 +14,7 @@ const GAME_DETAILS = {
   "rock-paper-scissors": { title: "Rock Paper Scissors", icons: "✊ ✋ ✌️" },
   "emoji-challenge": { title: "Emoji Challenge", icons: "🙂 😐 🙁" },
   "flappy-bird": { title: "Flappy Bird", icons: "🐦" },
+  "bubble-popper": { title: "Bubble Popper", icons: "🫧" },
   "pose-runner": { title: "Pose Runner", icons: "🏃‍♂️" },
 };
 
@@ -23,8 +26,9 @@ export default function GamePlay() {
 
   const [playerScore, setPlayerScore] = useState(0);
   const [computerScore, setComputerScore] = useState(0);
-  const [highestScore, setHighestScore] = useState(0);
+  const [highestScore, setHighestScore] = useState(0); // session-only high score
   const [isGameActive, setIsGameActive] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   //score information should be saved to the database
@@ -67,8 +71,21 @@ export default function GamePlay() {
 
   function handleStartGame() {
     setIsGameActive(true);
+    setGameEnded(false);
     setPlayerScore(0);
     setComputerScore(0);
+  }
+
+  function handleGameEnd(finalScore) {
+    setGameEnded(true);
+    setIsGameActive(false);
+    if (finalScore > highestScore) {
+      setHighestScore(finalScore);
+    }
+  }
+
+  function handleScoreUpdate(newScore) {
+    setPlayerScore(newScore);
   }
 
   function handleGoBack() {
@@ -90,17 +107,21 @@ export default function GamePlay() {
       {/* Top Right Corner - Scores and Menu */}
       <div className="fixed top-4 right-4 z-50 flex flex-col items-end gap-3">
         {/* Score Display - Top Right */}
-        {isGameActive && (
+        {(isGameActive || gameEnded) && (
           <div className="flex flex-col gap-2 rounded-lg border border-slate-200 dark:border-slate-900 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-4 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Your Score</div>
                 <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{playerScore}</div>
               </div>
-              <div className="text-right">
-                <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">AI Score</div>
-                <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{computerScore}</div>
-              </div>
+              {slug !== "bubble-popper" && (
+                <>
+                  <div className="text-right">
+                    <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">AI Score</div>
+                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{computerScore}</div>
+                  </div>
+                </>
+              )}
               <div className="text-right">
                 <div className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Highest</div>
                 <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{highestScore}</div>
@@ -153,12 +174,24 @@ export default function GamePlay() {
               Start Game
             </button>
           </>
+        ) : gameEnded ? (
+          <div className="w-full max-w-2xl text-center">
+            <h2 className="mb-4 text-3xl font-bold text-slate-900 dark:text-slate-100">Game Over!</h2>
+            <div className="mb-6 space-y-2">
+              <div className="text-xl text-slate-600 dark:text-slate-400">Final Score</div>
+              <div className="text-4xl font-bold text-slate-900 dark:text-slate-100">{playerScore}</div>
+              <div className="text-lg text-slate-600 dark:text-slate-400">High Score: {highestScore}</div>
+            </div>
+            <button onClick={handleStartGame} className={buttonStyle}>
+              Play Again
+            </button>
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             {slug === "flappy-bird" ? (
               <FlappyBird onScoreChange={setPlayerScore}/>
             ) : slug === "bubble-popper" ? (
-              <CameraBubble />
+              <BubblePop onGameEnd={handleGameEnd} onScoreUpdate={handleScoreUpdate} />
             ) : (
               <div className="w-full max-w-6xl h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
                 <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
