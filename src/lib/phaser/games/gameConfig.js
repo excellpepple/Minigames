@@ -24,6 +24,5 @@ export default function createGame(parentId, { onScoreChange } = {}) {
     transparent: true
   };
 
-  return new Phaser.Game(config);
-}
-
+  const game = new Phaser.Game(config);
+  return game;
