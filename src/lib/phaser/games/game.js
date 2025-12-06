@@ -74,8 +74,19 @@ export default class GameScene extends Phaser.Scene {
     this.gesture = new GestureDetected(this);
     this.gesture.start();
     this.gesture.on("gesture-changed", gesture => {
-      if (gesture === "mute") this.bgMusic.stop();
-    });
+      console.log(`Gesture Detected: ${gesture}`)
+
+      if (gesture == "mute"){
+        this.bgMusic.stop();
+        this.dieSound.stop();
+        this.pointSound.stop();
+      }
+      if (gesture == "call"){
+        this.bgMusic.play();
+        this.dieSound.play();
+        this.pointSound.play();
+      }
+    })
 
     // Pipes
     this.pipes = this.physics.add.group();

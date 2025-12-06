@@ -2,11 +2,12 @@ import React, { useRef, useEffect } from "react";
 import { createTracker } from "../lib/tracking/phaserTracker.js";
 import { startCamera } from "../lib/tracking/camera.js";
 
-export default function MainGame({ configFile }) {
+export default function MainGame({configFile, onPlayerScoreChange, onComputerScoreChange}) {
+  //initalize the camera and start tracking
   const videoRef = useRef(null);
   const holisticRef = useRef(null);
-  const trackingActive = useRef(true);
-  const gameRef = useRef(null);
+  const phaserStarted = useRef(false);
+  const gameInstanceRef = useRef(null);
 
   useEffect(() => {
     trackingActive.current = true;
@@ -28,67 +29,54 @@ export default function MainGame({ configFile }) {
 
     startTracking();
 
-    import("../lib/phaser/games/rock-paper-scissors/RPSConfig.js")
-      .then(({ default: createGame }) => {
-        const container = document.getElementById("game-container");
-        if (container) {
-          gameRef.current = createGame("game-container");
-        }
+    // Clean up previous game instance if it exists
+    if (gameInstanceRef.current) {
+      try {
+        gameInstanceRef.current.destroy(true);
+      } catch (e) {
+        console.warn("Error destroying previous game:", e);
+      }
+      gameInstanceRef.current = null;
+    }
+
+    // Reset phaser started flag to allow recreation
+    phaserStarted.current = false;
+
+    // start phaser
+    if (!phaserStarted.current) {
+      phaserStarted.current = true;
+      //import the games config to use it's 'create game' function, which will put the game in the container on the webpage
+      import("../lib/phaser/games/rock-paper-scissors/RPSConfig.js").then(({ default: createGame }) => {
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+          const container = document.getElementById("game-container");
+          if (container) {
+            const game = createGame("game-container", { 
+              onPlayerScoreChange: onPlayerScoreChange || (() => {}), 
+              onComputerScoreChange: onComputerScoreChange || (() => {})
+            });
+            gameInstanceRef.current = game;
+          } else {
+            console.error("game-container not found");
+          }
+        }, 100);
       });
+    }
 
+    // Cleanup function
     return () => {
-      trackingActive.current = false;
-
-      // ⭐ STOP MEDIAPIPE — THIS FIXES THE “width of null” ERROR
-      if (holisticRef.current) {
+      if (gameInstanceRef.current) {
         try {
-          holisticRef.current.close();
+          gameInstanceRef.current.destroy(true);
         } catch (e) {
-          console.warn("Holistic cleanup warn:", e);
+          console.warn("Error destroying game on unmount:", e);
         }
+        gameInstanceRef.current = null;
       }
-      holisticRef.current = null;
-
-      // ⭐ SAFELY DESTROY PHASER
-      if (gameRef.current) {
-        const game = gameRef.current;
-
-        try {
-          // Stop update loop
-          game.step = () => {};
-
-          // Stop all scenes
-          game.scene.getScenes(true).forEach((scene) => {
-            try {
-              scene.sys.shutdown();
-              scene.sys.destroy();
-            } catch {}
-          });
-
-          // Destroy renderer BEFORE removing canvas
-          if (game.renderer) {
-            const gl = game.renderer.gl;
-            const loseCtx = gl?.getExtension("WEBGL_lose_context");
-            loseCtx?.loseContext();
-
-            game.renderer.destroy();
-          }
-
-          // Remove canvas
-          if (game.canvas && game.canvas.parentNode) {
-            game.canvas.parentNode.removeChild(game.canvas);
-          }
-
-          game.destroy(true);
-        } catch (e) {
-          console.warn("Phaser cleanup warn:", e);
-        }
-      }
-
-      gameRef.current = null;
+      phaserStarted.current = false;
     };
-  }, []);
-
+  }, [onPlayerScoreChange, onComputerScoreChange]);
+//styling for the video feed, and then the game container.
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
       <video
@@ -102,7 +90,8 @@ export default function MainGame({ configFile }) {
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          zIndex: 0
+          zIndex: 0,
+          transform: "scaleX(-1)"
         }}
       />
 

@@ -11,11 +11,14 @@ const GESTURE_MAP = {
 };
 
 export default class MainScene extends Phaser.Scene {
-    constructor() {
-        super("MainScene");
-        this.playerGesture = null;
-        this.roundActive = false;
-        this.tracking = null;
+    constructor({ onPlayerScoreChange, onComputerScoreChange } = {}) {
+        super("MainScene")
+        this.playerGesture = null
+        this.roundActive = false
+        this.onPlayerScoreChange = onPlayerScoreChange || (() => {})
+        this.onComputerScoreChange = onComputerScoreChange || (() => {})
+        this.playerScore = 0
+        this.computerScore = 0
     }
 
     create() {
@@ -61,11 +64,32 @@ export default class MainScene extends Phaser.Scene {
         this.resultText.setText("Show gesture");
     }
 
+    resetScores() {
+        this.playerScore = 0
+        this.computerScore = 0
+        // Notify React that scores are reset
+        this.onPlayerScoreChange(0)
+        this.onComputerScoreChange(0)
+    }
+
     playRound() {
         this.roundActive = false;
 
         const ai = this.randomAI();
         const result = this.compare(this.playerGesture, ai);
+
+        // Update scores based on result
+        if (result === "You win") {
+            this.playerScore++
+            if (this.onPlayerScoreChange) {
+                this.onPlayerScoreChange(this.playerScore)
+            }
+        } else if (result === "You lose") {
+            this.computerScore++
+            if (this.onComputerScoreChange) {
+                this.onComputerScoreChange(this.computerScore)
+            }
+        }
 
         this.resultText.setText(
             `You: ${this.playerGesture}\nAI: ${ai}\n${result}`

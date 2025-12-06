@@ -13,16 +13,15 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
   const [hoveredBubbleId, setHoveredBubbleId] = useState(null);
   const hoverStartTimeRef = useRef(0);
   const cursorPositionRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-  const HOVER_DWELL_MS = 400;
   const bubbleIdCounter = useRef(0);
-  const TARGET_BUBBLES = 18;
-  const [combo, setCombo] = useState(0);
   const comboTimeoutRef = useRef(null);
   const lastPopTimeRef = useRef(0);
   const [scorePopups, setScorePopups] = useState([]);
-  const timeLeftRef = useRef(timeLeft);
+  const [combo, setCombo] = useState(0);
 
-  // Initialize audio
+  const HOVER_DWELL_MS = 400;
+  const TARGET_BUBBLES = 12;
+
   useEffect(() => {
     audioRef.current = new Audio('/audio/bubble_pop_sound.mp3');
     audioRef.current.volume = 0.5;
@@ -34,7 +33,6 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
     };
   }, []);
 
-  // Initialize camera
   useEffect(() => {
     let stream = null;
     async function initCamera() {
@@ -56,7 +54,6 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
     };
   }, []);
 
-  // Load virtual cursor system
   useEffect(() => {
     if (!isLoaded) return;
     let cancelled = false;
@@ -82,7 +79,7 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
         await import(/* @vite-ignore */ url);
         if (!cancelled) setBoot("ready");
       } catch (e) {
-        console.error("❌ Failed to init virtual cursor:", e);
+        console.error("Failed to init virtual cursor:", e);
         if (!cancelled) setBoot("error");
       }
     })();
@@ -90,7 +87,6 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
     return () => { cancelled = true; };
   }, [isLoaded]);
 
-  // Track cursor position
   useEffect(() => {
     const updateCursorPosition = () => {
       const cursorEl = document.getElementById("cursor");
@@ -100,7 +96,7 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
           x: rect.left + rect.width / 2,
           y: rect.top + rect.height / 2,
         };
-      }
+       }
       requestAnimationFrame(updateCursorPosition);
     };
 
@@ -108,30 +104,37 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
-  // Bubble generator
   const generateBubble = () => {
+    const fullscreenElement = 
+      document.fullscreenElement || 
+      document.webkitFullscreenElement || 
+      document.msFullscreenElement;
+    
+    const isFullscreen = !!fullscreenElement;
+    const margin = isFullscreen ? 0 : 100;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
     const radius = 50 + Math.random() * 30;
-    const margin = 100;
-    const x = margin + Math.random() * (window.innerWidth - margin * 2);
-    const y = margin + Math.random() * (window.innerHeight - margin * 2);
-
-    const baseSpeed = 3.5 + (30 - timeLeftRef.current) * 0.15;
+    const x = margin + Math.random() * (width - margin * 2);
+    const y = margin + Math.random() * (height - margin * 2);
+    const baseSpeed = 3.5 + (30 - timeLeft) * 0.15;
     const speed = baseSpeed + Math.random() * 2.5;
     const angle = Math.random() * Math.PI * 2;
-
+    
     const rand = Math.random();
     let type = "normal";
     let pointValue = 10;
-    let color = "rgba(255, 255, 255, 0.4)";
-
-    if (rand < 0.15) {
-      type = "small";
+    let color = 'rgba(255, 255, 255, 0.4)';
+    
+    if (rand < 0.35) {
+      type = 'small';
       pointValue = 20;
-      color = "rgba(135, 206, 250, 0.5)";
-    } else if (rand < 0.20) {
-      type = "large";
+      color = 'rgba(135, 206, 250, 0.5)';
+    } else if (rand < 0.60) {
+      type = 'large';
       pointValue = 5;
-      color = "rgba(255, 182, 193, 0.5)";
+      color = 'rgba(255, 100, 100, 0.5)';
     }
 
     return {
@@ -147,32 +150,41 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
     };
   };
 
-  // Initial bubbles
   useEffect(() => {
     const initial = [];
     for (let i = 0; i < TARGET_BUBBLES; i++) initial.push(generateBubble());
     setBubbles(initial);
   }, []);
 
-  // Animate bubbles
   useEffect(() => {
     if (bubbles.length === 0) return;
     let rafId = null;
 
     const animate = () => {
-      setBubbles(prev =>
-        prev.map(b => {
-          let { x, y, vx, vy, radius } = b;
-          const margin = 100;
-
+      setBubbles(prev => {
+        const fullscreenElement = 
+          document.fullscreenElement || 
+          document.webkitFullscreenElement || 
+          document.msFullscreenElement;
+        
+        const isFullscreen = !!fullscreenElement;
+        const margin = isFullscreen ? 0 : 100;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        
+        return prev.map(bubble => {
+          let { x, y, vx, vy, radius } = bubble;
+          
           x += vx;
           y += vy;
-
-          if (x - radius <= margin || x + radius >= window.innerWidth - margin) {
+          
+          if (x - radius <= margin || x + radius >= width - margin) {
             vx = -vx;
+            x = Math.max(margin + radius, Math.min(width - margin - radius, x));
           }
-          if (y - radius <= margin || y + radius >= window.innerHeight - margin) {
+          if (y - radius <= margin || y + radius >= height - margin) {
             vy = -vy;
+            y = Math.max(margin + radius, Math.min(height - margin - radius, y));
           }
 
           return { ...b, x, y, vx, vy };
@@ -186,41 +198,40 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
   }, [bubbles.length]);
 
   const popBubble = (bubbleId) => {
-    const popped = bubbles.find(b => b.id === bubbleId);
-    if (!popped) return;
-
+    const poppedBubble = bubbles.find(b => b.id === bubbleId);
+    if (!poppedBubble) return;
+    
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch(() => {});
     }
-
+    
     const now = performance.now();
-    const diff = now - lastPopTimeRef.current;
-    let newCombo = 1;
-    if (diff < 1000) newCombo = combo + 1;
-
+    const timeSinceLastPop = now - lastPopTimeRef.current;
+    const newCombo = timeSinceLastPop < 1000 && timeSinceLastPop > 0 ? combo + 1 : 1;
     setCombo(newCombo);
     lastPopTimeRef.current = now;
-
+    
     if (comboTimeoutRef.current) clearTimeout(comboTimeoutRef.current);
     comboTimeoutRef.current = setTimeout(() => setCombo(0), 1500);
-
-    const basePoints = popped.pointValue;
-    const multiplier = Math.min(1 + (newCombo - 1) * 0.2, 3);
-    const earned = Math.round(basePoints * multiplier);
-
+    
+    const basePoints = poppedBubble.pointValue || 10;
+    const comboMultiplier = Math.min(1 + (newCombo - 1) * 0.2, 3);
+    const pointsEarned = Math.round(basePoints * comboMultiplier);
+    
+    const popupId = Date.now();
     setScorePopups(prev => [...prev, {
-      id: Date.now(),
-      x: popped.x,
-      y: popped.y,
-      points: earned,
+      id: popupId,
+      x: poppedBubble.x,
+      y: poppedBubble.y,
+      points: pointsEarned,
       isCombo: newCombo > 1
     }]);
-
+    
     setTimeout(() => {
-      setScorePopups(prev => prev.slice(1));
+      setScorePopups(prev => prev.filter(p => p.id !== popupId));
     }, 1000);
-
+    
     setBubbles(prev => {
       const filtered = prev.filter(b => b.id !== bubbleId);
       if (filtered.length < TARGET_BUBBLES) filtered.push(generateBubble());
@@ -237,11 +248,6 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
     hoverStartTimeRef.current = 0;
   };
 
-  // Timer
-  useEffect(() => {
-    timeLeftRef.current = timeLeft;
-  }, [timeLeft]);
-
   useEffect(() => {
     if (timeLeft <= 0) {
       onGameEnd(score);
@@ -251,7 +257,14 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
     return () => clearTimeout(t);
   }, [timeLeft, score, onGameEnd]);
 
-  // Hover → pop
+  useEffect(() => {
+    return () => {
+      if (comboTimeoutRef.current) {
+        clearTimeout(comboTimeoutRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (bubbles.length === 0) return;
     let rafId = null;
@@ -353,7 +366,6 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
         );
       })}
 
-      {/* Score Popups */}
       {scorePopups.map(popup => (
         <div
           key={popup.id}
@@ -371,7 +383,6 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
         </div>
       ))}
 
-      {/* Combo Display */}
       {combo > 1 && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-30 pointer-events-none">
           <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full shadow-lg animate-pulse">
