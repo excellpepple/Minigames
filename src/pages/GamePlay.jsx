@@ -3,6 +3,7 @@ import FlappyBird from "./FlappyBird.jsx";
 import CameraBubble from "./CameraBubble.jsx";
 import CameraGame from "./CameraGame.jsx";
 import BubblePop from "./BubblePop.jsx";
+import MainGame from "./MainGame.jsx";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Common Tailwind CSS button styles for reusability
@@ -30,6 +31,7 @@ export default function GamePlay() {
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [gameKey, setGameKey] = useState(0);
 
   //score information should be saved to the database
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function GamePlay() {
     setGameEnded(false);
     setPlayerScore(0);
     setComputerScore(0);
+    setGameKey(prev => prev + 1); // Force remount/reset of game
   }
 
   function handleGameEnd(finalScore) {
@@ -195,7 +198,16 @@ export default function GamePlay() {
             {slug === "flappy-bird" ? (
               <FlappyBird onScoreChange={setPlayerScore}/>
             ) : slug === "bubble-popper" ? (
-              <BubblePop onGameEnd={handleGameEnd} onScoreUpdate={handleScoreUpdate} />
+              <BubblePop
+                onGameEnd={handleGameEnd}
+                onScoreUpdate={handleScoreUpdate}
+              />
+            ) : slug === "rock-paper-scissors" ? (
+              <MainGame
+                key={gameKey}
+                onPlayerScoreChange={setPlayerScore}
+                onComputerScoreChange={setComputerScore}
+              />
             ) : (
             <div className="w-full max-w-6xl h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
               <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
