@@ -173,6 +173,14 @@ export default function Games() {
     navigate(`/game/${slug}`);
   }
 
+  const scrollUp = () => {
+    window.scrollBy({ top: -300, behavior: 'smooth' });
+  };
+
+  const scrollDown = () => {
+    window.scrollBy({ top: 300, behavior: 'smooth' });
+  };
+
   return (
     <div className="relative min-h-screen">
       <section className="relative h-[46vh] overflow-hidden rounded-xl bg-slate-100">
@@ -297,6 +305,46 @@ export default function Games() {
       <style>{`
         @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
+
+      {/* Scroll Buttons - Fixed position for virtual cursor */}
+      <div className="fixed right-6 top-1/2 z-50 flex flex-col gap-4 -translate-y-1/2">
+        <button
+          onClick={scrollUp}
+          data-clickable="true"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all hover:scale-110 hover:bg-sky-50 dark:hover:bg-sky-900/30"
+          aria-label="Scroll up"
+          title="Scroll up"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-slate-700 dark:text-slate-300"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+        <button
+          onClick={scrollDown}
+          data-clickable="true"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all hover:scale-110 hover:bg-sky-50 dark:hover:bg-sky-900/30"
+          aria-label="Scroll down"
+          title="Scroll down"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-slate-700 dark:text-slate-300"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

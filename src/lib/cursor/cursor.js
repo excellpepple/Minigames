@@ -25,23 +25,33 @@ export function onResultsHandler(results) {
   const indexTip = hand[8];
   if (!indexTip) return;
 
-  // Map hand coordinates to screen coordinates and prefer the visible video element
+  // Map hand coordinates to screen coordinates
+  // ALWAYS use the global video element (id="video") from App.jsx - this is the one being tracked
   const getVisibleVideo = () => {
     try {
-      const vids = Array.from(document.querySelectorAll("video"));
-      const visible = vids.find((v) => {
-        const r = v.getBoundingClientRect();
-        const style = window.getComputedStyle(v);
-        return r.width > 8 && r.height > 8 && style.visibility !== "hidden" && parseFloat(style.opacity) > 0;
-      });
-      return visible || document.getElementById("video");
+      // Always use the global video element if it exists and has a stream
+      // This is the video element that's being tracked by the virtual cursor system
+      const globalVideo = document.getElementById("video");
+      if (globalVideo && globalVideo.srcObject) {
+        return globalVideo;
+      }
+      // Only return null if global video doesn't exist or has no stream
+      return globalVideo || null;
     } catch (e) {
       return document.getElementById("video");
     }
   };
 
   const visibleVideo = getVisibleVideo();
-  const videoRect = visibleVideo ? visibleVideo.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+  // Use viewport dimensions as fallback, accounting for scroll position
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const videoRect = visibleVideo ? visibleVideo.getBoundingClientRect() : { 
+    left: 0, 
+    top: 0, 
+    width: viewportWidth, 
+    height: viewportHeight 
+  };
   // detect whether the displayed video is mirrored (e.g., transform: scaleX(-1))
   const transform = visibleVideo ? window.getComputedStyle(visibleVideo).transform : "";
   const objectFit = visibleVideo ? (window.getComputedStyle(visibleVideo).objectFit || "cover") : "cover";
@@ -105,10 +115,12 @@ export function onResultsHandler(results) {
   prevY += (y - prevY) * (1 - sY);
 
   // Ensure cursor stays in viewport bounds (small pixel-clamp). This avoids jumps when video mapping is out of view.
+  // Cursor uses fixed positioning, so it's already relative to viewport (not affected by scrolling)
   prevX = Math.max(0, Math.min(vpw, prevX));
   prevY = Math.max(0, Math.min(vph, prevY));
 
   // update cursor position (translate center of element to the point)
+  // Use fixed positioning so cursor stays relative to viewport, not document
   cursor.style.left = `${prevX}px`;
   cursor.style.top = `${prevY}px`;
   cursor.style.transform = "translate(-50%, -50%)";

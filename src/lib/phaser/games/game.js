@@ -1,3 +1,4 @@
+import { GestureDetected } from '../../gesture/gesture.js';
 import { TrackingInput } from '../inputs/trackingInputs.js';
 
 export default class GameScene extends Phaser.Scene {
@@ -64,6 +65,24 @@ export default class GameScene extends Phaser.Scene {
         }
       }
     });
+
+    // Gesture Tracking input
+    this.gesture = new GestureDetected(this);
+    this.gesture.start(); // always start this after the normal tracking code
+    this.gesture.on("gesture-changed", gesture => {
+      console.log(`Gesture Detected: ${gesture}`)
+
+      if (gesture == "mute"){
+        this.bgMusic.stop();
+        this.dieSound.stop();
+        this.pointSound.stop();
+      }
+      if (gesture == "call"){
+        this.bgMusic.play();
+        this.dieSound.play();
+        this.pointSound.play();
+      }
+    })
 
     // Consistently spawn in new pipes
     this.pipes = this.physics.add.group();
