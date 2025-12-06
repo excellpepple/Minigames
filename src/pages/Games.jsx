@@ -1,31 +1,28 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { startCamera } from "../lib/tracking/camera.js";
+import { initHoverClick } from "../lib/cursor/hoverClick.js";
 
-//Animated user avatar with pulse effect
 function UserAvatarSmall({ onClick }) {
   return (
     <button onClick={onClick} data-clickable="true" aria-label="Open profile" className="group inline-flex items-center gap-2">
       <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
         <span className="text-sm font-semibold">U</span>
       </div>
-      <span className="font-semibold text-slate-700 dark:text-slate-300 transition-colors group-hover:text-slate-900 dark:group-hover:text-slate-100">Profile</span>
+      <span className="font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
+        Profile
+      </span>
     </button>
   );
 }
 
-// Super animated GameCard
 function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay = 0 }) {
-  const [isHovered, setIsHovered] = useState(false);
   return (
     <div
-      className="group relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md"
+      className="group relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:-translate-y-1 hover:shadow-md transition-transform"
       style={{ animationDelay: `${delay}ms` }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Cover */}
-      <div className="mb-4 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
+      <div className="mb-4 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
         {cover ? (
           <img src={cover} alt="cover" className="h-28 w-full object-cover" />
         ) : (
@@ -45,31 +42,30 @@ function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay
         )}
       </div>
 
-      {/* Title + subtitle */}
-      <div className="mb-3 flex items-start justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{subtitle} difficulty</p>
-        </div>
-      </div>
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+      <p className="text-xs text-slate-600 dark:text-slate-400">{subtitle} difficulty</p>
 
-      {/* Tags */}
-      {tags?.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-2 my-3">
           {tags.map((t) => (
-            <span key={t} className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:text-slate-300">{t}</span>
+            <span
+              key={t}
+              className="rounded-full bg-slate-50 dark:bg-slate-800 border px-2 py-0.5 text-[11px] text-slate-700 dark:text-slate-300"
+            >
+              {t}
+            </span>
           ))}
         </div>
       )}
 
-      <div className="mb-4 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-600 dark:text-slate-400">
-        Top Score: <span className="font-semibold text-slate-800 dark:text-slate-200">0</span>
+      <div className="mb-4 rounded-md border bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-600 dark:text-slate-400">
+        Top Score: <span className="font-semibold">0</span>
       </div>
 
       <button
         data-clickable="true"
         onClick={onView}
-        className="w-full rounded-lg bg-sky-600 dark:bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-700 dark:hover:bg-sky-600"
+        className="w-full rounded-lg bg-sky-600 dark:bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
       >
         View Details →
       </button>
@@ -77,16 +73,19 @@ function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay
   );
 }
 
-//Main Games page with navigation
 export default function Games() {
-  const navigate = useNavigate(); //hook for navigation
+  const navigate = useNavigate();
+
   const videoRef = useRef(null);
+  const cursorRef = useRef(null);
+
   const [cameraError, setCameraError] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [cursorBoot, setCursorBoot] = useState("init");
+
   const reducedMotion = useMemo(() => {
-    if (typeof window === "undefined") return false;
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   }, []);
+
   const [bubbles, setBubbles] = useState(() =>
     Array.from({ length: 8 }).map((_, i) => ({
       id: i + 1,
@@ -104,111 +103,116 @@ export default function Games() {
     { title: "Bubble Popper", subtitle: "Easy", icon: "/game_covers/Bubbles.png", slug: "bubble-popper", tags: ["bubbles", "fun", "gesture"] },
   ];
 
-  // Filters
-  const [query, setQuery] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
-  const allTags = useMemo(() => {
-    const set = new Set();
-    GAMES.forEach(g => g.tags?.forEach(t => set.add(t)));
-    return Array.from(set).sort();
-  }, []);
-  const filtered = GAMES.filter(g => {
-    const q = query.trim().toLowerCase();
-    const matchesQ = !q || g.title.toLowerCase().includes(q) || g.subtitle.toLowerCase().includes(q) || g.tags?.some(t => t.includes(q));
-    const matchesTag = !tagFilter || g.tags?.includes(tagFilter);
-    return matchesQ && matchesTag;
-  });
-
+  // ---------- Camera for banner ----------
   useEffect(() => {
-    let stream = null;
-    async function initCamera() {
-      if (!videoRef.current) return;
+    let stream;
+    async function init() {
       try {
         await startCamera(videoRef.current);
         stream = videoRef.current.srcObject;
-        setIsLoaded(true);
-      } catch (err) {
+      } catch {
         setCameraError(true);
       }
     }
-    if (navigator.mediaDevices?.getUserMedia) initCamera();
-    else setCameraError(true);
-    return () => {
-      if (stream) stream.getTracks().forEach((t) => t.stop());
-    };
+    init();
+    return () => stream?.getTracks().forEach((t) => t.stop());
   }, []);
 
-  // Dwell-to-click using homepage virtual cursor if present
+  // ---------- Load main.js (hand tracking) like Homepage ----------
   useEffect(() => {
-    const cursorEl = typeof document !== "undefined" ? document.getElementById("cursor") : null;
-    if (!cursorEl) return;
-    let rafId = 0;
-    let lastTarget = null;
-    let lastStart = 0;
-    const DWELL_MS = 600;
-    const isClickable = (el) => !!(el?.matches && el.matches("button, a, [data-clickable], [role='button']"));
-    const findClickable = (el) => { while (el) { if (isClickable(el)) return el; el = el.parentElement; } return null; };
-    const loop = () => {
+    let cancelled = false;
+
+    async function loadTracking() {
       try {
-        const rect = cursorEl.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        let target = document.elementFromPoint(cx, cy);
-        const clickable = findClickable(target);
-        const now = performance.now();
-        if (clickable !== lastTarget) { lastTarget = clickable; lastStart = now; }
-        else if (clickable && now - lastStart >= DWELL_MS) {
-          clickable.click?.();
-          lastStart = now + 1e9;
-          setTimeout(() => { lastStart = performance.now(); }, 350);
-        }
-      } catch {}
-      rafId = requestAnimationFrame(loop);
-    };
-    rafId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafId);
+        setCursorBoot("loading");
+
+        // Wait for holistic engine
+        const waitForHolistic = (timeout = 12000) =>
+          new Promise((resolve, reject) => {
+            const start = Date.now();
+            (function check() {
+              if (cancelled) return;
+              const ok = window.Holistic || (window.holistic && window.holistic.Holistic);
+              if (ok) return resolve();
+              if (Date.now() - start > timeout) return reject("Holistic timeout");
+              requestAnimationFrame(check);
+            })();
+          });
+
+        await waitForHolistic();
+        await new Promise((r) => setTimeout(r, 200));
+
+        const url = new URL("../lib/tracking/main.js", import.meta.url).href;
+        await import(/* @vite-ignore */ url);
+
+        setCursorBoot("ready");
+      } catch (e) {
+        console.error("Games page tracking failed:", e);
+        setCursorBoot("error");
+      }
+    }
+
+    loadTracking();
+    return () => (cancelled = true);
   }, []);
 
-  function openDetails(slug) {
-    navigate(`/game/${slug}`);
-  }
+  // ---------- Enable dwell click once ready ----------
+  useEffect(() => {
+    if (cursorBoot !== "ready") return;
+    const cleanup = initHoverClick("#cursor", 600);
+    return cleanup;
+  }, [cursorBoot]);
 
-  const scrollUp = () => {
-    window.scrollBy({ top: -300, behavior: 'smooth' });
-  };
-
-  const scrollDown = () => {
-    window.scrollBy({ top: 300, behavior: 'smooth' });
-  };
-
+  // ---------- Render ----------
   return (
     <div className="relative min-h-screen">
+
+      {/* Hand-tracking cursor */}
+      <div
+        id="cursor"
+        ref={cursorRef}
+        className="pointer-events-none absolute"
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: "9999px",
+          background: "rgba(255,255,255,0.9)",
+          boxShadow: "0 0 0 2px rgba(59,130,246,0.9)",
+          zIndex: 9999,
+        }}
+      />
+
+
+
+      {/* Banner Section */}
       <section className="relative h-[46vh] overflow-hidden rounded-xl bg-slate-100">
-        {!cameraError ? (
-          <>
-            <video
-              ref={videoRef}
-              id="video-games"
-              autoPlay
-              playsInline
-              muted
-              className="absolute inset-0 h-full w-full object-cover"
-              style={{ transform: "scaleX(-1)" }}
-            />
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-slate-900/40 via-slate-900/30 to-slate-900/60" />
-          </>
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900" />
+        {!cameraError && (
+          <video
+            ref={videoRef}
+            id="video-games"
+            autoPlay
+            playsInline
+            muted
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ transform: "scaleX(-1)" }}
+          />
         )}
 
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 to-slate-900/60 pointer-events-none" />
+
         {!reducedMotion && (
-          <div className="absolute inset-0" style={{ zIndex: 2 }}>
+          <div className="absolute inset-0" style={{ zIndex: 10 }}>
             {bubbles.map((b, i) =>
               b.popped ? null : (
                 <button
                   key={b.id}
-                  onClick={() => setBubbles((prev) => prev.map((x) => (x.id === b.id ? { ...x, popped: true } : x)))}
-                  className="absolute rounded-full bg-white/30 backdrop-blur-[1.5px] transition-transform hover:scale-105"
+                  onClick={() =>
+                    setBubbles((prev) =>
+                      prev.map((x) => (x.id === b.id ? { ...x, popped: true } : x))
+                    )
+                  }
+                  className="absolute rounded-full bg-white/30 backdrop-blur-[1.5px]"
+                  data-clickable="true"
                   style={{
                     left: `${b.xPct}%`,
                     top: `${b.yPct}%`,
@@ -216,32 +220,13 @@ export default function Games() {
                     height: `${b.r * 2}px`,
                     marginLeft: `-${b.r}px`,
                     marginTop: `-${b.r}px`,
-                    boxShadow: "inset 0 0 22px rgba(255,255,255,0.35), 0 6px 18px rgba(0,0,0,0.12)",
-                    animation: `float ${5 + (i % 4)}s ease-in-out ${i * 0.2}s infinite`,
+                    animation: `float ${5 + (i % 4)}s ease-in-out infinite`,
                   }}
-                  aria-label="Pop bubble"
-                  data-clickable="true"
                 />
               )
             )}
           </div>
         )}
-
-        <div className="relative z-10 flex h-full items-end">
-          <div className="w-full p-8">
-            <div className="flex items-end justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-white">Discover Games</h1>
-                <p className="mt-1 max-w-xl text-sm text-white/85">Pick a game and play hands‑free. Use tags and search to filter.</p>
-              </div>
-              <div className="hidden sm:block rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">Beta</div>
-            </div>
-          </div>
-        </div>
-
-        <style>{`
-          @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
-        `}</style>
       </section>
 
       <div className="relative z-10 mx-auto max-w-6xl p-6">
@@ -250,100 +235,56 @@ export default function Games() {
           <button
             className="inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800"
             onClick={() => navigate("/")}
+            data-clickable="true"
           >
             ← Back to Home
           </button>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-6 shadow-sm backdrop-blur">
-          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Game Selection</h1>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Choose a game to get started.</p>
-            </div>
-            <div className="flex w-full max-w-xl flex-col gap-3 md:flex-row md:items-center">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search games…"
-                className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 text-slate-900 dark:text-slate-100"
-              />
-              <select
-                value={tagFilter}
-                onChange={(e) => setTagFilter(e.target.value)}
-                className="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 focus:ring-2 text-slate-900 dark:text-slate-100"
-              >
-                <option value="">All tags</option>
-                {allTags.map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+        <GameList GAMES={GAMES} openDetails={(slug) => navigate(`/game/${slug}`)} />
+      </div>
+    </div>
+  );
+}
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((g, idx) => (
-              <GameCard
-                key={g.slug}
-                title={g.title}
-                subtitle={g.subtitle}
-                icon={g.icon}
-                tags={g.tags}
-                slug={g.slug}
-                onView={() => openDetails(g.slug)}
-                delay={idx * 60}
-              />
-            ))}
-            {filtered.length === 0 && (
-              <div className="col-span-full rounded-md border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-10 text-center text-sm text-slate-600 dark:text-slate-400">No games match your search.</div>
-            )}
-          </div>
-        </div>
+function GameList({ GAMES, openDetails }) {
+  const [query, setQuery] = useState("");
+  const [tagFilter, setTagFilter] = useState("");
+
+  const allTags = Array.from(new Set(GAMES.flatMap((g) => g.tags))).sort();
+
+  const filtered = GAMES.filter((g) => {
+    const q = query.toLowerCase();
+    return (!q || g.title.toLowerCase().includes(q)) && (!tagFilter || g.tags.includes(tagFilter));
+  });
+
+  return (
+    <div className="rounded-xl border bg-white/90 dark:bg-slate-900/90 p-6">
+      <div className="flex gap-4 flex-wrap mb-6">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search games…"
+          className="border px-3 py-2 rounded-md text-sm flex-1"
+        />
+        <select
+          value={tagFilter}
+          onChange={(e) => setTagFilter(e.target.value)}
+          className="border px-3 py-2 rounded-md text-sm"
+        >
+          <option value="">All tags</option>
+          {allTags.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
       </div>
 
-
-      <style>{`
-        @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
-
-      {/* Scroll Buttons - Fixed position for virtual cursor */}
-      <div className="fixed right-6 top-1/2 z-50 flex flex-col gap-4 -translate-y-1/2">
-        <button
-          onClick={scrollUp}
-          data-clickable="true"
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all hover:scale-110 hover:bg-sky-50 dark:hover:bg-sky-900/30"
-          aria-label="Scroll up"
-          title="Scroll up"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-slate-700 dark:text-slate-300"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-          </svg>
-        </button>
-        <button
-          onClick={scrollDown}
-          data-clickable="true"
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all hover:scale-110 hover:bg-sky-50 dark:hover:bg-sky-900/30"
-          aria-label="Scroll down"
-          title="Scroll down"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-slate-700 dark:text-slate-300"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((g, idx) => (
+          <GameCard key={g.slug} {...g} delay={idx * 60} onView={() => openDetails(g.slug)} />
+        ))}
       </div>
     </div>
   );

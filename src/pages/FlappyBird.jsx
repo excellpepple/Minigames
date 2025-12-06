@@ -3,42 +3,69 @@ import { createTracker } from "../lib/tracking/phaserTracker.js";
 import { startCamera } from "../lib/tracking/camera.js";
 
 export default function FlappyBird({ onScoreChange }) {
-  //initalize the camera and start tracking
   const videoRef = useRef(null);
   const holisticRef = useRef(null);
-  const phaserStarted = useRef(false);
+  const trackingActive = useRef(true);
+  const gameRef = useRef(null);
 
   useEffect(() => {
+    trackingActive.current = true;
+
+    // ⭐ START CAMERA + TRACKING (Mediapipe)
     const startTracking = async () => {
       holisticRef.current = createTracker();
       await startCamera(videoRef.current);
 
       const processFrame = async () => {
+        if (!trackingActive.current) return; // ⭐ stop loop on unmount
         await holisticRef.current.send({ image: videoRef.current });
         requestAnimationFrame(processFrame);
       };
+
       processFrame();
     };
 
     startTracking();
 
-    // start phaser
-    if (!phaserStarted.current) {
-      phaserStarted.current = true;
-      //import the games config to use it's 'create game' function, which will put the game in the container on the webpage
-      import("../lib/phaser/games/gameConfig.js").then(({ default: createGame }) => {
-        const container = document.getElementById("game-container");
-        if (container) createGame("game-container", { onScoreChange });
-      });
-    }
+    // ⭐ START PHASER GAME
+    import("../lib/phaser/games/gameConfig.js").then(({ default: createGame }) => {
+      const container = document.getElementById("game-container");
+
+      if (container) {
+        gameRef.current = createGame("game-container", { onScoreChange });
+
+        // ⭐ IMPORTANT: CLEANUP EVENTS WHEN PHASER DESTROYS SCENE
+        gameRef.current.events?.on("destroy", () => {
+          trackingActive.current = false;
+        });
+      }
+    });
+
+    // ⭐ CLEANUP WHEN LEAVING PAGE
+    return () => {
+      // Stop Mediapipe frame loop
+      trackingActive.current = false;
+
+      // Destroy Phaser instance safely
+      if (gameRef.current) {
+        try {
+          gameRef.current.destroy(true);
+        } catch (err) {
+          console.warn("Phaser destroy warning:", err);
+        }
+
+        gameRef.current = null;
+      }
+    };
   }, [onScoreChange]);
-//styling for the video feed, and then the game container.
+
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
       <video
         ref={videoRef}
         autoPlay
         playsInline
+        muted
         style={{
           position: "absolute",
           top: 0,
@@ -46,7 +73,7 @@ export default function FlappyBird({ onScoreChange }) {
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          opacity: "0",
+          opacity: 0,
           zIndex: 0
         }}
       />
@@ -66,5 +93,4 @@ export default function FlappyBird({ onScoreChange }) {
     </div>
   );
 }
-
 

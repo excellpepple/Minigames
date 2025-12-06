@@ -114,7 +114,7 @@ export default function GamePlay() {
       {/* Top Right Corner - Scores and Menu */}
       <div className="fixed top-4 right-4 z-50 flex flex-col items-end gap-3">
         {/* Score Display - Top Right */}
-        {(isGameActive || gameEnded) && slug !== "flappy-bird" && (
+        {(isGameActive || gameEnded) && (
           <div className="flex flex-col gap-2 rounded-lg border border-slate-200 dark:border-slate-900 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-4 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="text-right">

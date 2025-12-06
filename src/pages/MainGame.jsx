@@ -10,14 +10,20 @@ export default function MainGame({configFile, onPlayerScoreChange, onComputerSco
   const gameInstanceRef = useRef(null);
 
   useEffect(() => {
+    trackingActive.current = true;
+
     const startTracking = async () => {
       holisticRef.current = createTracker();
       await startCamera(videoRef.current);
 
       const processFrame = async () => {
-        await holisticRef.current.send({ image: videoRef.current });
+        if (!trackingActive.current) return;
+        if (holisticRef.current)
+          await holisticRef.current.send({ image: videoRef.current });
+
         requestAnimationFrame(processFrame);
       };
+
       processFrame();
     };
 
