@@ -5,7 +5,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 const GAME_DATA = {
   "rock-paper-scissors": {
     title: "Rock Paper Scissors",
-    icon: "✊ ✋ ✌️",
+    icon: "/game_covers/RPS.png",
     difficulty: "Easy",
     tags: ["gesture", "vision", "prototype"],
     description: "Classic Rock Paper Scissors with a twist! Use hand gestures to play against the AI. Show your hand to the camera and let computer vision recognize your choice.",
@@ -18,24 +18,9 @@ const GAME_DATA = {
     },
     topScore: 0,
   },
-  "emoji-challenge": {
-    title: "Emoji Challenge",
-    icon: "🙂 😐 🙁",
-    difficulty: "Medium",
-    tags: ["face", "expression", "vision"],
-    description: "Test your facial expression skills! Match the emoji shown on screen by making the corresponding facial expression. Can you nail every expression?",
-    howToPlay: "Watch the screen for an emoji. Make the matching facial expression:\n• 🙂 = Happy smile\n• 😐 = Neutral, no expression\n• 🙁 = Sad or disappointed\n\nThe camera will analyze your expression and give you points for accuracy!",
-    controls: "Facial Expressions (Vision-based)",
-    controlsDetails: "Use your face to express the shown emoji. The game uses facial recognition to detect your expressions in real-time.",
-    uploader: {
-      name: "Mini Vision Team",
-      description: "A fun way to test facial recognition technology while having a good time!",
-    },
-    topScore: 0,
-  },
   "flappy-bird": {
     title: "Flappy Bird",
-    icon: "🐦",
+    icon: "/game_covers/Birdie.png",
     difficulty: "Medium",
     tags: ["pose", "fun", "classic"],
     description: "The classic Flappy Bird game. Use your nose to guide the bird through obstacles",
@@ -50,7 +35,7 @@ const GAME_DATA = {
   },
   "bubble-popper": {
     title: "Bubble Popper",
-    icon: "🫧",
+    icon: "/game_covers/Bubbles.png",
     difficulty: "Easy",
     tags: ["bubbles", "fun", "gesture"],
     description: "Pop as many bubbles as you can! Pop them by hovering with your hand or tapping the screen.",
@@ -60,21 +45,6 @@ const GAME_DATA = {
     uploader: {
       name: "Mini Vision Team",
       description: "A relaxing bubble popping game that demonstrates gesture-based interaction.",
-    },
-    topScore: 0,
-  },
-  "pose-runner": {
-    title: "Pose Runner",
-    icon: "🏃‍♂️",
-    difficulty: "Hard",
-    tags: ["pose", "hard", "prototype"],
-    description: "An endless runner where you control the character with your body movements. Run in place, jump, and dodge obstacles using full-body pose detection!",
-    howToPlay: "Use your body to control the runner:\n• Run in place = Move forward\n• Jump up = Jump over obstacles\n• Lean left/right = Move lanes\n• Duck/Squat = Slide under obstacles\n\nSurvive as long as you can and rack up points!",
-    controls: "Full Body Pose Detection",
-    controlsDetails: "This game uses advanced pose detection to track your entire body. Stand in front of the camera with enough space to move around. The game tracks your joints and movements in real-time.",
-    uploader: {
-      name: "Mini Vision Team",
-      description: "Our most advanced game yet! Requires full-body tracking and lots of movement space.",
     },
     topScore: 0,
   },
@@ -92,11 +62,19 @@ export default function GameDetails() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black">
       {/* Hero Section */}
-      <div className="relative h-[50vh] overflow-hidden bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black">
+      <div className="relative h-[50vh] overflow-hidden">
+        {/* Background Image - fills entire container */}
+        <img 
+          src={game.icon} 
+          alt={game.title}
+          className="h-full w-full object-cover"
+        />
+        {/* Overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-slate-900/70 dark:from-black/60 dark:via-slate-950/50 dark:to-black/70" />
+        {/* Content overlay */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="mb-4 text-7xl">{game.icon}</div>
-            <h1 className="text-4xl font-bold text-white md:text-5xl">{game.title}</h1>
+          <div className="text-center relative z-10">
+            <h1 className="text-4xl font-bold text-white md:text-5xl drop-shadow-lg">{game.title}</h1>
             <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur">
               {game.difficulty} difficulty
             </div>
