@@ -1,13 +1,13 @@
 import Phaser from "phaser"
 import MainScene from "./RPSGame"
 
-export default function createGame(parentId) {
+export default function createGame(parentId, { onPlayerScoreChange, onComputerScoreChange } = {}) {
   const config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
     parent: parentId,
-    scene: [MainScene],
+    scene: [new MainScene({ onPlayerScoreChange, onComputerScoreChange })],
     scale: {
       mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.CENTER_BOTH
