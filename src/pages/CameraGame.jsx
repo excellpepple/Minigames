@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect } from "react";
-import { createTracker } from "../../lib/tracking/phaserTracker.js";
-import { startCamera } from "../../lib/tracking/camera.js";
+import { createTracker } from "../lib/tracking/phaserTracker.js";
+import { startCamera } from "../lib/tracking/camera.js";
 
 export default function CameraGame() {
   //initalize the camera and start tracking
@@ -41,7 +41,7 @@ export default function CameraGame() {
     if (!phaserStarted.current) {
       phaserStarted.current = true;
       //import the games config to use it's 'create game' function, which will put the game in the container on the webpage
-      import("../../lib/phaser/games/gameConfig.js").then(({ default: createGame }) => {
+      import("../lib/phaser/games/gameConfig.js").then(({ default: createGame }) => {
         const container = document.getElementById("game-container");
         if (container) createGame("game-container");
       });

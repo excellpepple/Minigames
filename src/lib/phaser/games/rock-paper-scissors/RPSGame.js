@@ -1,7 +1,6 @@
-// MainScene.js
 import Phaser from "phaser";
 import { GestureDetected } from "../../../gesture/gesture.js";
-import { TrackingInput } from "../../inputs/trackingInputs.js"; // ⭐ ADDED
+import { TrackingInput } from "../../inputs/trackingInputs.js";
 
 const GESTURE_MAP = {
     fist: "rock",
@@ -16,25 +15,27 @@ export default class MainScene extends Phaser.Scene {
         super("MainScene");
         this.playerGesture = null;
         this.roundActive = false;
-
-        this.tracking = null; // ⭐ ADDED
+        this.tracking = null;
     }
 
     create() {
-        // ⭐ START LANDMARK LISTENER FOR THIS GAME
+        // ⭐ Start mediapipe tracking only for this game
         this.tracking = new TrackingInput(this);
         this.tracking.start();
 
-        // ⭐ CLEAN UP LANDMARK LISTENER WHEN GAME ENDS
+        // ⭐ Cleanup when scene shuts down
         this.events.on("shutdown", () => {
-            this.tracking.stop();
+            this.tracking?.stop?.();
+            this.gesture?.stop?.();
         });
 
+        // ⭐ Cleanup when scene is destroyed
         this.events.on("destroy", () => {
-            this.tracking.stop();
+            this.tracking?.stop?.();
+            this.gesture?.stop?.();
         });
 
-        // The rest is unchanged…
+        // Gesture detector
         this.gesture = new GestureDetected(this);
         this.gesture.start();
 
@@ -42,10 +43,8 @@ export default class MainScene extends Phaser.Scene {
             fontSize: 28
         });
 
-        // Listen for gesture changes
         this.gesture.on("gesture-changed", g => {
             if (!this.roundActive) return;
-
             const mapped = GESTURE_MAP[g];
             if (!mapped) return;
 
@@ -76,19 +75,17 @@ export default class MainScene extends Phaser.Scene {
     }
 
     randomAI() {
-        const arr = ["rock", "paper", "scissors"];
-        return arr[Math.floor(Math.random() * arr.length)];
+        return ["rock", "paper", "scissors"][Math.floor(Math.random() * 3)];
     }
 
     compare(p, a) {
         if (p === a) return "Tie";
-
         const win =
             (p === "rock" && a === "scissors") ||
             (p === "paper" && a === "rock") ||
             (p === "scissors" && a === "paper");
-
         return win ? "You win" : "You lose";
     }
 }
+
 

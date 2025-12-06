@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
-import { createTracker } from "../../lib/tracking/phaserTracker.js";
-import { startCamera } from "../../lib/tracking/camera.js";
+import { createTracker } from "../lib/tracking/phaserTracker.js";
+import { startCamera } from "../lib/tracking/camera.js";
 
 export default function FlappyBird({ onScoreChange }) {
   const videoRef = useRef(null);
@@ -28,7 +28,7 @@ export default function FlappyBird({ onScoreChange }) {
     startTracking();
 
     // ⭐ START PHASER GAME
-    import("../../lib/phaser/games/gameConfig.js").then(({ default: createGame }) => {
+    import("../lib/phaser/games/gameConfig.js").then(({ default: createGame }) => {
       const container = document.getElementById("game-container");
 
       if (container) {
