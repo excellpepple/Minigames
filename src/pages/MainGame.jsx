@@ -8,6 +8,7 @@ export default function MainGame({configFile, onPlayerScoreChange, onComputerSco
   const holisticRef = useRef(null);
   const phaserStarted = useRef(false);
   const gameInstanceRef = useRef(null);
+  const trackingActive = useRef(true);
 
   useEffect(() => {
     trackingActive.current = true;
