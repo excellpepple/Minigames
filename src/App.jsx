@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, NavLink, Link } from "react-router-dom";
+import { Routes, Route, NavLink, Link, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext.jsx";
 import { useVirtualCursor, useDwellToClick } from "./hooks/useVirtualCursor.js";
 
@@ -13,10 +13,11 @@ import GameDetails from "./pages/GameDetails.jsx";
 import Aboutpage from "./pages/Aboutpage.jsx";
 
 
-import CameraGame from "./pages/CameraGame.jsx";
+import FlappyBird from "./pages/FlappyBird.jsx";
 
 export default function App() {
   const { videoRef, cameraError, isLoaded, boot } = useVirtualCursor();
+  const location = useLocation();
 
   const [virtualCursorEnabled, setVirtualCursorEnabled] = useState(() => {
     const saved = localStorage.getItem("virtualCursorEnabled");
@@ -27,12 +28,15 @@ export default function App() {
     localStorage.setItem("virtualCursorEnabled", virtualCursorEnabled.toString());
   }, [virtualCursorEnabled]);
 
-  useDwellToClick(virtualCursorEnabled && isLoaded && boot === "ready");
+  const isInPlayRoute = location.pathname.startsWith("/play/");
+  const showCursor = virtualCursorEnabled && isLoaded && boot === "ready";
+
+  useDwellToClick(showCursor);
 
   useEffect(() => {
     const cursor = document.getElementById("cursor");
     if (cursor) {
-      if (virtualCursorEnabled && isLoaded && boot === "ready") {
+      if (showCursor) {
         cursor.style.opacity = "1";
         cursor.style.pointerEvents = "none";
       } else {
@@ -41,6 +45,48 @@ export default function App() {
       }
     }
   }, [virtualCursorEnabled, isLoaded, boot]);
+
+  // Handle fullscreen - move cursor into fullscreen container
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const cursor = document.getElementById("cursor");
+      if (!cursor) return;
+
+      const fullscreenElement = 
+        document.fullscreenElement || 
+        document.webkitFullscreenElement || 
+        document.msFullscreenElement;
+
+      if (fullscreenElement) {
+        // Move cursor into fullscreen container if not already there
+        if (cursor.parentElement !== fullscreenElement) {
+          fullscreenElement.appendChild(cursor);
+        }
+        cursor.style.position = "fixed";
+        cursor.style.zIndex = "9999";
+      } else {
+        // Move cursor back to body when exiting fullscreen
+        if (cursor.parentElement !== document.body) {
+          document.body.appendChild(cursor);
+        }
+        cursor.style.position = "fixed";
+        cursor.style.zIndex = "60";
+      }
+    };
+
+    // Check initial state
+    handleFullscreenChange();
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("msfullscreenchange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("msfullscreenchange", handleFullscreenChange);
+    };
+  }, []);
 
   return (
     <ThemeProvider>
@@ -72,8 +118,7 @@ export default function App() {
             boxShadow:
               "0 0 0 2px rgba(59,130,246,0.9), 0 0 10px rgba(255,255,255,0.85)",
             zIndex: 60,
-            opacity:
-              virtualCursorEnabled && isLoaded && boot === "ready" ? 1 : 0,
+            opacity: showCursor ? 1 : 0,
             transition: "opacity 0.3s ease-in-out",
             left: "50%",
             top: "50%",
@@ -81,66 +126,66 @@ export default function App() {
           }}
         />
 
-        <header className="sticky top-0 z-30 border-b border-slate-200 dark:border-slate-900 bg-white/80 dark:bg-black/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/80">
-          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-            <Link to="/" className="flex items-center gap-2 font-extrabold tracking-tight">
+      <header className="sticky top-0 z-30 border-b border-slate-200 dark:border-slate-900 bg-white/80 dark:bg-black/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/80">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+          <Link to="/" className="flex items-center gap-2 font-extrabold tracking-tight">
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-sky-500 to-purple-500 text-white shadow">
                 MV
               </span>
-              <span className="text-lg">Mini Vision Games</span>
-            </Link>
-            <nav className="flex items-center gap-4 text-sm font-semibold">
-              {[
-                { to: "/", label: "Home" },
-                { to: "/games", label: "Games" },
-                { to: "/about", label: "About" },
-                { to: "/login", label: "Login" },
-                { to: "/signup", label: "Sign Up" },
-              ].map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) =>
-                    `rounded-md px-3 py-2 transition-colors hover:text-sky-700 dark:hover:text-sky-400 ${
+            <span className="text-lg">Mini Vision Games</span>
+          </Link>
+          <nav className="flex items-center gap-4 text-sm font-semibold">
+            {[
+              { to: "/", label: "Home" },
+              { to: "/games", label: "Games" },
+              { to: "/about", label: "About" },
+              { to: "/login", label: "Login" },
+              { to: "/signup", label: "Sign Up" },
+            ].map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `rounded-md px-3 py-2 transition-colors hover:text-sky-700 dark:hover:text-sky-400 ${
                       isActive
                         ? "text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30"
                         : "text-slate-600 dark:text-slate-300"
-                    }`
-                  }
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-        </header>
+                  }`
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      </header>
 
-        <main id="main">
-          <Routes>
-            <Route path="/" element={<Homepage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/profile-setup" element={<ProfileSetup />} />
-            <Route path="/games" element={<Games />} />
-            <Route path="/game/:slug" element={<GameDetails />} />
-            <Route path="/play/:slug" element={<GamePlay />} />
-            <Route path="/about" element={<Aboutpage />} />
+      <main id="main">
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/profile-setup" element={<ProfileSetup />} />
+          <Route path="/games" element={<Games />} />
+          <Route path="/game/:slug" element={<GameDetails />} />
+          <Route path="/play/:slug" element={<GamePlay />} />
+          <Route path="/about" element={<Aboutpage />} />
 
             {/* ⭐ ADD NEW ROUTE HERE */}
-            <Route path="/camera-game" element={<CameraGame />} />
+            <Route path="/flappy-bird" element={<FlappyBird />} />
 
-            <Route path="*" element={<div className="p-8">Page not found</div>} />
-          </Routes>
-        </main>
+          <Route path="*" element={<div className="p-8">Page not found</div>} />
+        </Routes>
+      </main>
 
-        <footer className="border-t border-slate-200 dark:border-slate-900 bg-white/60 dark:bg-black/80">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 text-sm text-slate-600 dark:text-slate-400">
-            <p>© {new Date().getFullYear()} Mini Vision Games</p>
+      <footer className="border-t border-slate-200 dark:border-slate-900 bg-white/60 dark:bg-black/80">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 text-sm text-slate-600 dark:text-slate-400">
+          <p>© {new Date().getFullYear()} Mini Vision Games</p>
             <p className="flex items-center gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Prototype
             </p>
-          </div>
-        </footer>
+        </div>
+      </footer>
 
         <button
           onClick={() => setVirtualCursorEnabled(!virtualCursorEnabled)}

@@ -58,8 +58,7 @@ export default function Login() {
 
       console.log("Saved user:", JSON.parse(localStorage.getItem("currentUser")));
 
-
-
+      
       nav("/games");
     } catch (err) {
       console.error("Login error:", err);

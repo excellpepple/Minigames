@@ -144,12 +144,14 @@ app.post("/updatePlayerScore", async (req, res) => {
       });
     }
 
-    // Stats exist → update only if higher
+    // Stats exist → Add score to total score
+
+    stats.totalScore += newScore;
+    // Update high score only if higher
     if (newScore > stats.highScore) {
       stats.highScore = newScore;
-      stats.totalScore += newScore;
-      await stats.save();
     }
+    await stats.save();
 
     res.json({
       message: "Score processed",

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { startCamera } from "../lib/tracking/camera.js"; // <-- ensure 'cursor' matches your folder
-import { initHoverClick } from "../lib/cursor/hoverClick.js";
+import { initHoverClick } from "../lib/cursor/hoverClick.js"; 
 
 export default function Homepage() {
   const videoRef = useRef(null);
+  const audioRef = useRef(null);
   const [cameraError, setCameraError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [boot, setBoot] = useState("init");
@@ -21,6 +22,18 @@ export default function Homepage() {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   }, []);
 
+  // Initialize audio
+  useEffect(() => {
+    audioRef.current = new Audio('/audio/bubble_pop_sound.mp3');
+    audioRef.current.volume = 0.5; // Set volume to 50%
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
   // Show video background on Homepage
   useEffect(() => {
     const video = document.getElementById("video");
@@ -34,8 +47,16 @@ export default function Homepage() {
     };
   }, []);
 
-  const pop = (id) =>
+  const pop = (id) => {
+    // Play pop sound (same as BubblePop game)
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => {
+        console.log("Homepage bubble sound failed:", err);
+      });
+    }
     setBubbles((prev) => prev.map((b) => (b.id === id ? { ...b, popped: true } : b)));
+  };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center">

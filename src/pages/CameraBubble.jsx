@@ -10,42 +10,77 @@ export default function CameraBubble() {
   useEffect(() => {
     let rafId = null;
     let cancelled = false;
+    // Start camera tracking (runs in parallel, doesn't block game)
     const startTracking = async () => {
-      holisticRef.current = createTracker();
-      const globalVideo = document.getElementById("video");
-      if (globalVideo && globalVideo.srcObject && videoRef.current) {
-        // Reuse global stream
-        videoRef.current.srcObject = globalVideo.srcObject;
-      } else {
-        await startCamera(videoRef.current);
-      }
-      const processFrame = async () => {
-        if (cancelled) return;
-        try {
-          await holisticRef.current.send({ image: videoRef.current });
-        } catch (e) {}
+      try {
+        holisticRef.current = createTracker();
+        const globalVideo = document.getElementById("video");
+        if (globalVideo && globalVideo.srcObject && videoRef.current) {
+          // Reuse global stream
+          videoRef.current.srcObject = globalVideo.srcObject;
+        } else if (videoRef.current) {
+          await startCamera(videoRef.current);
+        }
+        const processFrame = async () => {
+          if (cancelled) return;
+          try {
+            if (holisticRef.current && videoRef.current) {
+              await holisticRef.current.send({ image: videoRef.current });
+            }
+          } catch (e) {}
+          rafId = requestAnimationFrame(processFrame);
+        };
         rafId = requestAnimationFrame(processFrame);
-      };
-      rafId = requestAnimationFrame(processFrame);
+      } catch (error) {
+        console.error('CameraBubble: Failed to start tracking:', error);
+      }
     };
     startTracking();
 
-    // Start Phaser bubble game
+    // Start Phaser bubble game immediately (don't wait for camera)
     if (!phaserStarted.current) {
       phaserStarted.current = true;
-      import("../lib/phaser/games/bubbleGameConfig.js").then(({ default: createGame }) => {
+      // Use setTimeout to ensure DOM is ready - increased delay
+      setTimeout(() => {
         const container = document.getElementById("game-container");
-          if (container) {
-            console.log('CameraBubble: creating Phaser bubble game');
+        if (!container) {
+          console.error('CameraBubble: game-container not found');
+          return;
+        }
+        
+        import("../lib/phaser/games/bubbleGameConfig.js").then((module) => {
           // destroy any previous game instance on this container
           if (container._phaserGame) {
             try { container._phaserGame.destroy(true); } catch (e) {}
             delete container._phaserGame;
           }
-          const gameInstance = createGame("game-container");
-          if (gameInstance) container._phaserGame = gameInstance;
-        }
-      });
+          // Use default export which is createBubbleGame
+          const createGame = module.default || module.createBubbleGame;
+          if (createGame) {
+            console.log('CameraBubble: Creating game instance...');
+            const gameInstance = createGame("game-container");
+            if (gameInstance) {
+              container._phaserGame = gameInstance;
+              console.log('CameraBubble: Game instance created successfully', gameInstance);
+              // Check if canvas was created
+              const canvas = container.querySelector('canvas');
+              if (canvas) {
+                console.log('CameraBubble: Canvas found', canvas);
+                canvas.style.display = 'block';
+                canvas.style.visibility = 'visible';
+              } else {
+                console.warn('CameraBubble: Canvas not found in container');
+              }
+            } else {
+              console.error('CameraBubble: Game instance is null');
+            }
+          } else {
+            console.error('CameraBubble: createGame function not found');
+          }
+        }).catch((error) => {
+          console.error('CameraBubble: Failed to load bubble game config:', error);
+        });
+      }, 100);
     }
 
     return () => {
@@ -70,6 +105,7 @@ export default function CameraBubble() {
         ref={videoRef}
         autoPlay
         playsInline
+        muted
         style={{
           position: "absolute",
           top: 0,
@@ -78,11 +114,22 @@ export default function CameraBubble() {
           height: "100%",
           objectFit: "cover",
           zIndex: 0,
+          transform: "scaleX(-1)",
         }}
       />
       <div
         id="game-container"
-        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 1, pointerEvents: "auto" }}
+        style={{ 
+          position: "absolute", 
+          top: 0, 
+          left: 0, 
+          width: "100%", 
+          height: "100%", 
+          zIndex: 1, 
+          pointerEvents: "auto",
+          visibility: "visible",
+          opacity: 1
+        }}
       />
     </div>
   );

@@ -184,12 +184,39 @@ export default function ProfileSetup() {
               className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 text-slate-900 dark:text-slate-100 disabled:bg-slate-50 dark:disabled:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
             />
           </div>
+          <div>
+            <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Password</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={user.password || ""}
+                onChange={(e) => setUser((u) => ({ ...u, password: e.target.value }))}
+                placeholder="Enter new password"
+                className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 text-slate-900 dark:text-slate-100"
+              />
+            ) : (
+              <div className="flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-200">
+                <span className="tracking-widest">{"*".repeat(user.password?.length || 8)}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">hidden</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Buttons */}
         <div className="mt-8 flex items-center justify-end gap-3">
-          <button onClick={handleEditSave} className="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">{isEditing ? "Save" : "Edit"}</button>
-          <button onClick={handleContinue} className="rounded-md bg-sky-600 dark:bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 dark:hover:bg-sky-600">Continue to Games</button>
+          <button 
+            onClick={handleEditSave}
+            className="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+          >
+            {isEditing ? "Save" : "Edit"}
+          </button>
+          <button
+            onClick={handleContinue}
+            className="rounded-md bg-sky-600 dark:bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-700 dark:hover:bg-sky-600"
+          >
+            Continue to Games
+          </button>
         </div>
       </div>
     </div>

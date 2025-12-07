@@ -140,6 +140,16 @@ export default function Signup() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-3 text-xs">
+              <p className="mb-1.5 font-semibold text-slate-700 dark:text-slate-300">Password Requirements:</p>
+              <ul className="space-y-1 text-slate-600 dark:text-slate-400">
+                <li>• At least 8 characters</li>
+                <li>• One uppercase letter</li>
+                <li>• One lowercase letter</li>
+                <li>• One number</li>
+                <li>• One special character</li>
+              </ul>
+            </div>
             <button
               type="submit"
               disabled={!username || !name || !email || !password}
