@@ -1,10 +1,22 @@
+FROM node:18
+WORKDIR /app
+COPY package.json ./
+RUN npm install --production
+
+Copy backend merged server
+COPY src/backend ./src/backend
+
+Copy frontend build
+COPY --from=build /app/dist ./dist
+
+EXPOSE 8080
+CMD ["node", "src/backend/server.js"]
 {
   "name": "my-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \"node ./src/backend/loginBackend.js\" \"node ./src/backend/mongoBackend.js\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
