@@ -14,12 +14,16 @@ export default function MainGame({
   onComputerScoreChange,
   onGameEnd
 }) {
+export default function MainGame({configFile, onPlayerScoreChange, onComputerScoreChange}) {
+  //initalize the camera and start tracking
   const videoRef = useRef(null);
   const holisticRef = useRef(null);
 
   const gameInstanceRef = useRef(null);
   const trackingActive = useRef(true);
   const phaserStarted = useRef(false);
+  const gameInstanceRef = useRef(null);
+  const trackingActive = useRef(true);
 
   useEffect(() => {
     trackingActive.current = true;
@@ -33,9 +37,9 @@ export default function MainGame({
 
       const processFrame = async () => {
         if (!trackingActive.current) return;
-        if (holisticRef.current) {
+        if (holisticRef.current)
           await holisticRef.current.send({ image: videoRef.current });
-        }
+
         requestAnimationFrame(processFrame);
       };
 
@@ -135,8 +139,8 @@ export default function MainGame({
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          transform: "scaleX(-1)",
-          zIndex: 0
+          zIndex: 0,
+          transform: "scaleX(-1)"
         }}
       />
 
