@@ -20,6 +20,14 @@ export default function MainGame({
   const gameInstanceRef = useRef(null);
   const trackingActive = useRef(true);
   const phaserStarted = useRef(false);
+  
+  // Store callbacks in refs so they don't trigger re-renders
+  const callbacksRef = useRef({ onPlayerScoreChange, onComputerScoreChange, onGameEnd });
+  
+  // Update refs when callbacks change
+  useEffect(() => {
+    callbacksRef.current = { onPlayerScoreChange, onComputerScoreChange, onGameEnd };
+  }, [onPlayerScoreChange, onComputerScoreChange, onGameEnd]);
 
   useEffect(() => {
     trackingActive.current = true;
@@ -74,9 +82,9 @@ export default function MainGame({
             }
 
             const game = createGame("game-container", {
-              onPlayerScoreChange: onPlayerScoreChange || (() => {}),
-              onComputerScoreChange: onComputerScoreChange || (() => {}),
-              onGameEnd: onGameEnd || (() => {})   // ⭐ IMPORTANT
+              onPlayerScoreChange: (...args) => callbacksRef.current.onPlayerScoreChange?.(...args),
+              onComputerScoreChange: (...args) => callbacksRef.current.onComputerScoreChange?.(...args),
+              onGameEnd: (...args) => callbacksRef.current.onGameEnd?.(...args)
             });
 
             gameInstanceRef.current = game;
@@ -97,9 +105,9 @@ export default function MainGame({
           const scene = gameInstanceRef.current.scene?.keys?.MainScene;
           const finalScore = scene?.playerScore || 0;
 
-          if (typeof onGameEnd === "function") {
+          if (typeof callbacksRef.current.onGameEnd === "function") {
             console.log("React → forcing game end on unmount (RPS)", finalScore);
-            onGameEnd(finalScore);
+            callbacksRef.current.onGameEnd(finalScore);
           }
         } catch (err) {
           console.warn("Error reading final score during unmount:", err);
@@ -116,7 +124,7 @@ export default function MainGame({
 
       phaserStarted.current = false;
     };
-  }, [onPlayerScoreChange, onComputerScoreChange, onGameEnd]);
+  }, []); // Empty dependency array - only run once on mount
 
   // --------------------------
   // RENDER VIDEO + GAME CANVAS
