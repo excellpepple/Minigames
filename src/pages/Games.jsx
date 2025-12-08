@@ -16,26 +16,40 @@ function UserAvatarSmall({ onClick }) {
   );
 }
 
+//
+// ✅ FIXED GAMECARD WITH isHovered STATE
+//
 function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay = 0 }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div
       className="group relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:-translate-y-1 hover:shadow-md transition-transform"
       style={{ animationDelay: `${delay}ms` }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="mb-4 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
         {cover ? (
           <img src={cover} alt="cover" className="h-28 w-full object-cover" />
         ) : (
           <div className="relative h-28 w-full">
-            {icon?.startsWith('/') || icon?.startsWith('http') || icon?.startsWith('./') || icon?.startsWith('../') ? (
+            {icon?.startsWith("/") ||
+            icon?.startsWith("http") ||
+            icon?.startsWith("./") ||
+            icon?.startsWith("../") ? (
               <img
                 src={icon}
                 alt={title}
-                className={`h-full w-full object-cover transition-transform ${isHovered ? "scale-110" : "scale-100"}`}
+                className={`h-full w-full object-cover transition-transform ${
+                  isHovered ? "scale-110" : "scale-100"
+                }`}
               />
             ) : (
               <div className="grid h-full w-full place-items-center bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900">
-                <div className={`text-4xl transition-transform ${isHovered ? "scale-110" : "scale-100"}`}>{icon}</div>
+                <div className={`text-4xl transition-transform ${isHovered ? "scale-110" : "scale-100"}`}>
+                  {icon}
+                </div>
               </div>
             )}
           </div>
@@ -73,6 +87,9 @@ function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay
   );
 }
 
+//
+// MAIN PAGE
+//
 export default function Games() {
   const navigate = useNavigate();
 
@@ -96,14 +113,15 @@ export default function Games() {
     }))
   );
 
-  // Local data for cards
   const GAMES = [
     { title: "Rock Paper Scissors", subtitle: "Easy", icon: "/game_covers/RPS.png", slug: "rock-paper-scissors", tags: ["gesture", "vision", "prototype"] },
     { title: "Flappy Bird", subtitle: "Medium", icon: "/game_covers/Birdie.png", slug: "flappy-bird", tags: ["pose", "fun", "classic"] },
     { title: "Bubble Popper", subtitle: "Easy", icon: "/game_covers/Bubbles.png", slug: "bubble-popper", tags: ["bubbles", "fun", "gesture"] },
   ];
 
-  // ---------- Camera for banner ----------
+  //
+  // CAMERA SETUP
+  //
   useEffect(() => {
     let stream;
     async function init() {
@@ -118,7 +136,9 @@ export default function Games() {
     return () => stream?.getTracks().forEach((t) => t.stop());
   }, []);
 
-  // ---------- Load main.js (hand tracking) like Homepage ----------
+  //
+  // LOAD HAND TRACKING ENGINE
+  //
   useEffect(() => {
     let cancelled = false;
 
@@ -126,7 +146,6 @@ export default function Games() {
       try {
         setCursorBoot("loading");
 
-        // Wait for holistic engine
         const waitForHolistic = (timeout = 12000) =>
           new Promise((resolve, reject) => {
             const start = Date.now();
@@ -156,14 +175,18 @@ export default function Games() {
     return () => (cancelled = true);
   }, []);
 
-  // ---------- Enable dwell click once ready ----------
+  //
+  // ENABLE DWELL CLICK
+  //
   useEffect(() => {
     if (cursorBoot !== "ready") return;
     const cleanup = initHoverClick("#cursor", 600);
     return cleanup;
   }, [cursorBoot]);
 
-  // ---------- Render ----------
+  //
+  // RENDER
+  //
   return (
     <div className="relative min-h-screen">
 
@@ -182,9 +205,7 @@ export default function Games() {
         }}
       />
 
-
-
-      {/* Banner Section */}
+      {/* Banner */}
       <section className="relative h-[46vh] overflow-hidden rounded-xl bg-slate-100">
         {!cameraError && (
           <video
@@ -229,6 +250,7 @@ export default function Games() {
         )}
       </section>
 
+      {/* Main list */}
       <div className="relative z-10 mx-auto max-w-6xl p-6">
         <div className="mb-6 flex items-center justify-between">
           <UserAvatarSmall onClick={() => navigate("/profile-setup")} />
@@ -247,6 +269,9 @@ export default function Games() {
   );
 }
 
+//
+// GAME LIST
+//
 function GameList({ GAMES, openDetails }) {
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState("");

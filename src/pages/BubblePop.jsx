@@ -189,7 +189,7 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
 
           return { ...b, x, y, vx, vy };
         })
-      );
+    });
       rafId = requestAnimationFrame(animate);
     };
 
