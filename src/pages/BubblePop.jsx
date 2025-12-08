@@ -187,7 +187,7 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
             y = Math.max(margin + radius, Math.min(height - margin - radius, y));
           }
 
-          return { ...b, x, y, vx, vy };
+          return { ...bubble, x, y, vx, vy };
         })
     });
       rafId = requestAnimationFrame(animate);
@@ -239,7 +239,7 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
     });
 
     setScore(prev => {
-      const updated = prev + earned;
+      const updated = prev + pointsEarned;
       onScoreUpdate(updated);
       return updated;
     });
@@ -309,20 +309,6 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
 
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden" style={{ background: "transparent", zIndex: 1 }}>
-
-      {/* ⭐️ HAND-TRACKING CURSOR ADDED HERE ⭐️ */}
-      <div
-        id="cursor"
-        className="pointer-events-none fixed"
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: "9999px",
-          background: "rgba(255,255,255,0.9)",
-          boxShadow: "0 0 0 2px rgba(59,130,246,0.9)",
-          zIndex: 9999,
-        }}
-      />
 
       {!cameraError ? (
         <video
