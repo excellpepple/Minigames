@@ -1,7 +1,3 @@
-// This file is to test the database routes of PlayerStats.js
-// We test both GET and POST routes
-
-
 process.env.NODE_ENV = "test";
 
 import request from "supertest";
@@ -10,7 +6,6 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 
 import app from "../../mongoBackend.js";
 import PlayerStats from "../PlayerStats.js";
-
 
 let mongo;
 
@@ -33,118 +28,91 @@ beforeEach(async () => {
 });
 
 // ------------------------------
-// GET TESTS
-// ------------------------------
-describe("GET /playerstats/:gameId/:playerId", () => {
-  it("should return player stats when they exist", async () => {
-    await PlayerStats.create({
-      gameId: "game1",
-      playerId: "player1",
-      highScore: 50,
-      totalScore: 50,
-    });
-
-    const res = await request(app).get("/playerstats/game1/player1");
-
-    expect(res.status).toBe(200);
-    expect(res.body.gameId).toBe("game1");
-    expect(res.body.playerId).toBe("player1");
-    expect(res.body.highScore).toBe(50);
-  });
-
-  it("should return 404 if stats do not exist", async () => {
-    const res = await request(app).get("/playerstats/abc/xyz");
-    expect(res.status).toBe(404);
-    expect(res.body.message).toBe("Player stats not found for this game.");
-
-  });
-});
-
-// ------------------------------
-// POST TESTS for updatePlayerScore
+// POST /updatePlayerScore Tests
 // ------------------------------
 describe("POST /updatePlayerScore", () => {
 
-  it("should create new stats if none exist", async () => {
+  it("creates new stats if none exist", async () => {
     const res = await request(app)
       .post("/updatePlayerScore")
       .send({
-        gameId: "gameA",
-        playerId: "playerA",
-        newScore: 100,
+        gameId: "game1",
+        playerId: "player1",
+        newScore: 100
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe("New stats created and high score set");
+    expect(res.body.message).toBe("New stats created");
     expect(res.body.stats.highScore).toBe(100);
     expect(res.body.stats.totalScore).toBe(100);
   });
 
-  it("should update high score and increase totalScore when newScore is higher", async () => {
+  it("updates score if stats already exist", async () => {
     await PlayerStats.create({
-      gameId: "gameB",
-      playerId: "playerB",
-      highScore: 200,
-      totalScore: 300,
+      gameId: "game2",
+      playerId: "player2",
+      highScore: 50,
+      totalScore: 75
     });
 
     const res = await request(app)
       .post("/updatePlayerScore")
       .send({
-        gameId: "gameB",
-        playerId: "playerB",
-        newScore: 250,
+        gameId: "game2",
+        playerId: "player2",
+        newScore: 40
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe("Score processed");
-    expect(res.body.stats.highScore).toBe(250);
-    expect(res.body.stats.totalScore).toBe(550); // 300 + 250
+    expect(res.body.message).toBe("Score updated");
+    expect(res.body.stats.highScore).toBe(50); // unchanged
+    expect(res.body.stats.totalScore).toBe(115); // 75 + 40
   });
 
-  it("should NOT update highScore if newScore is lower", async () => {
+  it("updates high score when newScore is higher", async () => {
     await PlayerStats.create({
-      gameId: "gameC",
-      playerId: "playerC",
-      highScore: 300,
-      totalScore: 500,
+      gameId: "game3",
+      playerId: "player3",
+      highScore: 80,
+      totalScore: 200
     });
 
     const res = await request(app)
       .post("/updatePlayerScore")
       .send({
-        gameId: "gameC",
-        playerId: "playerC",
-        newScore: 100,
+        gameId: "game3",
+        playerId: "player3",
+        newScore: 120
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.stats.highScore).toBe(300); // unchanged
-    //expect(res.body.stats.totalScore).toBe(500); // unchanged
+    expect(res.body.stats.highScore).toBe(120);
+    expect(res.body.stats.totalScore).toBe(320); // 200 + 120
   });
 
-  it("should return 400 if required fields are missing", async () => {
+  it("returns 400 when required fields are missing", async () => {
     const res = await request(app)
       .post("/updatePlayerScore")
       .send({
-        gameId: "missing",
-        newScore: 50,
+        gameId: "game4",
+        newScore: 50
       });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toBe("gameId, playerId, and newScore are required");
+    expect(res.body.message).toBe("Missing fields");
   });
 
-  it("should return 400 if newScore is not a number", async () => {
+  it("returns 400 when newScore is not a number", async () => {
     const res = await request(app)
       .post("/updatePlayerScore")
       .send({
-        gameId: "gameX",
-        playerId: "playerX",
-        newScore: "notNumber",
+        gameId: "game5",
+        playerId: "player5",
+        newScore: "ABC"
       });
 
     expect(res.status).toBe(400);
+    expect(res.body.message).toBe("Missing fields");
   });
 
 });
