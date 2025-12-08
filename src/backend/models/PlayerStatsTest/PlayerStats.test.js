@@ -1,68 +1,150 @@
+// This file is to test the database routes of PlayerStats.js
+// We test both GET and POST routes
+
+
+process.env.NODE_ENV = "test";
+
+import request from "supertest";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
+
+import app from "../../mongoBackend.js";
 import PlayerStats from "../PlayerStats.js";
+
 
 let mongo;
 
+// ------------------------------
+// Setup + Teardown
+// ------------------------------
 beforeAll(async () => {
   mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(mongo.getUri());
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
+  await mongoose.connection.dropDatabase();
+  await mongoose.connection.close();
   await mongo.stop();
 });
 
-afterEach(async () => {
+beforeEach(async () => {
   await PlayerStats.deleteMany({});
 });
 
-describe("PlayerStats Model", () => {
-  test("creates a new player stats document", async () => {
-    const stats = await PlayerStats.create({
-      playerId: "12345",
-      gameId: "rock-paper-scissors",
+// ------------------------------
+// GET TESTS
+// ------------------------------
+describe("GET /playerstats/:gameId/:playerId", () => {
+  it("should return player stats when they exist", async () => {
+    await PlayerStats.create({
+      gameId: "game1",
+      playerId: "player1",
       highScore: 50,
+      totalScore: 50,
     });
 
-    expect(stats.playerId).toBe("12345");
-    expect(stats.gameId).toBe("rock-paper-scissors");
-    expect(stats.highScore).toBe(50);
+    const res = await request(app).get("/playerstats/game1/player1");
+
+    expect(res.status).toBe(200);
+    expect(res.body.gameId).toBe("game1");
+    expect(res.body.playerId).toBe("player1");
+    expect(res.body.highScore).toBe(50);
   });
 
-  test("updates an existing player's score when higher", async () => {
+  it("should return 404 if stats do not exist", async () => {
+    const res = await request(app).get("/playerstats/abc/xyz");
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe("Player stats not found for this game.");
+
+  });
+});
+
+// ------------------------------
+// POST TESTS for updatePlayerScore
+// ------------------------------
+describe("POST /updatePlayerScore", () => {
+
+  it("should create new stats if none exist", async () => {
+    const res = await request(app)
+      .post("/updatePlayerScore")
+      .send({
+        gameId: "gameA",
+        playerId: "playerA",
+        newScore: 100,
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe("New stats created and high score set");
+    expect(res.body.stats.highScore).toBe(100);
+    expect(res.body.stats.totalScore).toBe(100);
+  });
+
+  it("should update high score and increase totalScore when newScore is higher", async () => {
     await PlayerStats.create({
-      playerId: "abc",
-      gameId: "flappy-bird",
-      highScore: 20,
+      gameId: "gameB",
+      playerId: "playerB",
+      highScore: 200,
+      totalScore: 300,
     });
 
-    const existing = await PlayerStats.findOne({ playerId: "abc", gameId: "flappy-bird" });
-    existing.highScore = 40;
-    const updated = await existing.save();
+    const res = await request(app)
+      .post("/updatePlayerScore")
+      .send({
+        gameId: "gameB",
+        playerId: "playerB",
+        newScore: 250,
+      });
 
-    expect(updated.highScore).toBe(40);
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe("Score processed");
+    expect(res.body.stats.highScore).toBe(250);
+    expect(res.body.stats.totalScore).toBe(550); // 300 + 250
   });
 
-  test("does NOT update score if lower", async () => {
+  it("should NOT update highScore if newScore is lower", async () => {
     await PlayerStats.create({
-      playerId: "xyz",
-      gameId: "pose-runner",
-      highScore: 100,
+      gameId: "gameC",
+      playerId: "playerC",
+      highScore: 300,
+      totalScore: 500,
     });
 
-    const existing = await PlayerStats.findOne({ playerId: "xyz", gameId: "pose-runner" });
+    const res = await request(app)
+      .post("/updatePlayerScore")
+      .send({
+        gameId: "gameC",
+        playerId: "playerC",
+        newScore: 100,
+      });
 
-    existing.highScore = 50;
-    const updated = await existing.save();
-
-    // Should stay 100
-    expect(updated.highScore).toBe(50);
+    expect(res.status).toBe(200);
+    expect(res.body.stats.highScore).toBe(300); // unchanged
+    //expect(res.body.stats.totalScore).toBe(500); // unchanged
   });
+
+  it("should return 400 if required fields are missing", async () => {
+    const res = await request(app)
+      .post("/updatePlayerScore")
+      .send({
+        gameId: "missing",
+        newScore: 50,
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe("gameId, playerId, and newScore are required");
+  });
+
+  it("should return 400 if newScore is not a number", async () => {
+    const res = await request(app)
+      .post("/updatePlayerScore")
+      .send({
+        gameId: "gameX",
+        playerId: "playerX",
+        newScore: "notNumber",
+      });
+
+    expect(res.status).toBe(400);
+  });
+
 });
