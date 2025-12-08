@@ -27,3 +27,5 @@ node_modules/
 
 gesture-recognition/output/compressed/hagrid_static_gestures.npz
 gesture-recognition/model/tfjs-env
+
+*.env
