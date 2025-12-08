@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 
@@ -6,52 +6,100 @@ export default function ProfileSetup() {
   const { isDark, toggleTheme } = useTheme();
   const nav = useNavigate();
   const fileInputRef = useRef(null);
-  const [user, setUser] = useState({ name: "", email: "", password: "", photo: "", emojiAvatar: "" });
-  const [displayName, setDisplayName] = useState("");
-  const [username, setUsername] = useState("");
+
+  // Initialize user state from localStorage
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("currentUser");
+    return saved
+      ? JSON.parse(saved)
+      : { name: "", email: "", photo: "", emojiAvatar: "", userDescription: "", cognitoSub: "" };
+  });
+
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [chosenEmoji, setChosenEmoji] = useState(user.emojiAvatar || "");
   const [isEditing, setIsEditing] = useState(false);
 
-  function handleContinue() {
-    nav("/games");
-  }
+  // Save user locally
+  const saveUserLocally = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+  };
 
-  function handleEditSave() {
-    if (isEditing) {
-      setIsEditing(false);
-    } else {
-      // Enter edit mode
-      setIsEditing(true);
+  // Sync avatar with backend
+  const syncAvatarToDB = async (updatedUser) => {
+    if (!updatedUser.cognitoSub) return;
+
+    try {
+      await fetch("http://localhost:5001/updateAvatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cognitoSub: updatedUser.cognitoSub,
+          photo: updatedUser.photo || "",
+          emojiAvatar: updatedUser.emojiAvatar || "",
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to sync avatar with backend", err);
     }
-  }
+  };
 
-  function onPickPhoto() {
-    fileInputRef.current?.click();
-  }
+  // Sync bio to backend
+  const syncBioToDB = async (updatedUser) => {
+    if (!updatedUser.cognitoSub) return;
 
-  function onPhotoSelected(e) {
+    try {
+      await fetch("http://localhost:5001/updateUserDescription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cognitoSub: updatedUser.cognitoSub,
+          userDescription: updatedUser.userDescription || "",
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to sync bio with backend", err);
+    }
+  };
+
+  const handleContinue = () => nav("/games");
+
+  const handleEditSave = async () => {
+    if (isEditing) {
+      // Save edits to backend
+      await syncBioToDB(user);
+    }
+    setIsEditing((prev) => !prev);
+  };
+
+  const onPickPhoto = () => fileInputRef.current?.click();
+
+  const onPhotoSelected = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = () => {
-      const dataUrl = String(reader.result || "");
-      setUser((u) => ({ ...u, photo: dataUrl }));
+      const updatedUser = { ...user, photo: String(reader.result || ""), emojiAvatar: "" };
+      saveUserLocally(updatedUser);
+      syncAvatarToDB(updatedUser);
     };
     reader.readAsDataURL(file);
-  }
+  };
 
-  const EMOJIS = [
-    "🙂","😀","🥰","😎","🤩","😺","🐱","🐶","🦊","🐼","🐻","🐯","🦄","🐣","🌸","⭐️","🎮"
-  ];
+  const EMOJIS = ["🙂","😀","🥰","😎","🤩","😺","🐱","🐶","🦊","🐼","🐻","🐯","🦄","🐣","🌸","⭐️","🎮"];
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-6">
       <div className="w-full max-w-4xl rounded-xl border border-slate-200 dark:border-slate-900 bg-white dark:bg-slate-900 p-8 shadow-sm">
+        {/* Avatar Section */}
         <div className="mb-8 flex items-start gap-6">
           <div className="relative flex items-center gap-3">
-            <button onClick={() => setAvatarMenuOpen((v) => !v)} className="relative grid h-24 w-24 place-items-center overflow-hidden rounded-full ring-2 ring-slate-200 dark:ring-slate-800 hover:ring-sky-300 dark:hover:ring-sky-500">
+            <button
+              onClick={() => setAvatarMenuOpen((v) => !v)}
+              className="relative grid h-24 w-24 place-items-center overflow-hidden rounded-full ring-2 ring-slate-200 dark:ring-slate-800 hover:ring-sky-300 dark:hover:ring-sky-500"
+            >
               {user.photo ? (
                 <img src={user.photo} alt="profile" className="h-full w-full object-cover" />
               ) : user.emojiAvatar ? (
@@ -63,29 +111,44 @@ export default function ProfileSetup() {
               )}
               <span className="pointer-events-none absolute bottom-1 right-1 rounded-full bg-white/90 dark:bg-slate-900/90 px-2 py-0.5 text-[10px] font-semibold text-slate-700 dark:text-slate-300 shadow">Edit</span>
             </button>
+
             {avatarMenuOpen && (
               <div className="absolute left-0 top-[110%] z-50 w-56 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2 shadow-md">
                 <button onClick={() => { setAvatarMenuOpen(false); onPickPhoto(); }} className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">Choose image…</button>
                 <button onClick={() => { setAvatarMenuOpen(false); setEmojiPickerOpen(true); }} className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">Choose emoji…</button>
               </div>
             )}
+
             {emojiPickerOpen && (
               <div className="absolute left-0 top-[110%] z-50 mt-2 w-64 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-md">
                 <div className="mb-2 text-xs font-medium uppercase text-slate-500 dark:text-slate-400">Pick an emoji</div>
-                <select value={chosenEmoji} onChange={(e) => setChosenEmoji(e.target.value)} className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-2 py-2 text-sm text-slate-900 dark:text-slate-100">
+                <select
+                  value={chosenEmoji}
+                  onChange={(e) => setChosenEmoji(e.target.value)}
+                  className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-2 py-2 text-sm text-slate-900 dark:text-slate-100"
+                >
                   <option value="">—</option>
-                  {EMOJIS.map((e) => (
-                    <option key={e} value={e}>{e}</option>
-                  ))}
+                  {EMOJIS.map((e) => <option key={e} value={e}>{e}</option>)}
                 </select>
+
                 <div className="mt-3 flex justify-end gap-2">
                   <button onClick={() => setEmojiPickerOpen(false)} className="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300">Cancel</button>
-                  <button onClick={() => { setUser((u) => ({ ...u, emojiAvatar: chosenEmoji, photo: "" })); setEmojiPickerOpen(false); }} className="rounded-md bg-sky-600 dark:bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white">Use</button>
+                  <button
+                    onClick={() => {
+                      const updatedUser = { ...user, emojiAvatar: chosenEmoji, photo: "" };
+                      saveUserLocally(updatedUser);
+                      syncAvatarToDB(updatedUser);
+                      setEmojiPickerOpen(false);
+                    }}
+                    className="rounded-md bg-sky-600 dark:bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
+                  >Use</button>
                 </div>
               </div>
             )}
           </div>
+
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPhotoSelected} />
+
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Your Account</h1>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Add a photo and update your info.</p>
@@ -104,32 +167,20 @@ export default function ProfileSetup() {
             aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
             type="button"
           >
-            {isDark ? (
-              <span className="text-xl">☀️</span>
-            ) : (
-              <span className="text-xl">🌙</span>
-            )}
+            {isDark ? <span className="text-xl">☀️</span> : <span className="text-xl">🌙</span>}
           </button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-1">
-            <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Display name</label>
-            <input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name"
-              disabled={!isEditing}
-              className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 text-slate-900 dark:text-slate-100 disabled:bg-slate-50 dark:disabled:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
-            />
-          </div>
+        {/* User Bio */}
+        <div className="grid gap-6 md:grid-cols-1">
           <div>
-            <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Username</label>
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="username"
+            <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">User Bio</label>
+            <textarea
+              value={user.userDescription || ""}
+              onChange={(e) => saveUserLocally({ ...user, userDescription: e.target.value })}
+              placeholder="Tell us about yourself..."
               disabled={!isEditing}
+              rows={4}
               className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 text-slate-900 dark:text-slate-100 disabled:bg-slate-50 dark:disabled:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
             />
           </div>
@@ -152,6 +203,7 @@ export default function ProfileSetup() {
           </div>
         </div>
 
+        {/* Buttons */}
         <div className="mt-8 flex items-center justify-end gap-3">
           <button 
             onClick={handleEditSave}

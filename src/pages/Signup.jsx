@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 
 const input =
   "w-full rounded-md border border-gray-300 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-3 outline-none transition focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500";
@@ -9,11 +10,12 @@ const btn =
 export default function Signup() {
   const navigate = useNavigate();
 
-  //State variables to store form input values
+  // State variables to store form input values
   const [username, setUsername] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
 
   //State variables to store communication with cognito
   const [confirmationCode, setConfirmationCode] = useState("");
@@ -21,8 +23,9 @@ export default function Signup() {
   const [resultMsg, setResultMsg] = useState("");
 
   const [AmazonCognitoIdentity, setAmazonCognitoIdentity] = useState(null);
+  const [cognitoSub, setCognitoSub] = useState(""); // store Cognito ID
 
-  // Getting AWS Cognito library. This is so its only loaded if needed
+  // Load AWS Cognito library
   useEffect(() => {
     const script = document.createElement("script");
     script.src =
@@ -33,7 +36,8 @@ export default function Signup() {
 
   if (!AmazonCognitoIdentity) return <div className="flex min-h-[70vh] items-center justify-center">Loading...</div>;
 
-  // To store the AWS Cognito User Pool ID's. Note there is no secret key (not needed)
+  // Having these values here is safe, these alone dont allow access to our user pool in any particularly sensitive way
+  // All you can do with this info is sign up or log in
   const poolData = {
     UserPoolId: "us-east-2_TnkqczGxv",
     ClientId: "799nkfc8ec7arm089oet4r1m45",
@@ -55,6 +59,10 @@ export default function Signup() {
         setResultMsg("Sign-up failed: " + err.message);
         return;
       }
+
+      // Store the Cognito sub returned at signup
+      setCognitoSub(result.userSub);
+
       setResultMsg(
         "Sign-up successful! Please check your email for the confirmation code."
       );
@@ -62,13 +70,13 @@ export default function Signup() {
     });
   }
 
-  // ------------------  VERIFICATION  ------------------
+  // ------------------ VERIFICATION ------------------
   function handleConfirm(e) {
     e.preventDefault();
     setResultMsg("");
 
     const userData = {
-      Username: username, // auto-use same username from sign-up
+      Username: username,
       Pool: userPool,
     };
     const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
@@ -78,13 +86,23 @@ export default function Signup() {
         setResultMsg("Confirmation failed: " + err.message);
         return;
       }
+
       setResultMsg("Account confirmed successfully!");
-      setTimeout(() => navigate("/login"), 1500); // Probably not the best solution? but it gives the UI time to load
+
+      // Send the Cognito sub to Mongo backend
+      axios.post("http://localhost:5001/signup", {
+        cognitoSub: cognitoSub,
+        displayName: userData.Username,
+        email,
+      })
+      .then(res => console.log("MongoDB response:", res.data))
+      .catch(err => console.error("MongoDB error:", err)); 
+
+      setTimeout(() => navigate("/login"), 1500);
     });
   }
 
-
-  // Input Forms
+  // ------------------ JSX Form ------------------
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-6">
       <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 p-6 shadow-lg">

@@ -16,10 +16,8 @@ function UserAvatarSmall({ onClick }) {
   );
 }
 
-//
-// ✅ FIXED GAMECARD WITH isHovered STATE
-//
-function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay = 0 }) {
+// Super animated GameCard
+function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay = 0, playerScores }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -72,8 +70,8 @@ function GameCard({ title, subtitle, icon, cover, tags = [], slug, onView, delay
         </div>
       )}
 
-      <div className="mb-4 rounded-md border bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-600 dark:text-slate-400">
-        Top Score: <span className="font-semibold">0</span>
+      <div className="mb-4 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-600 dark:text-slate-400">
+        Top Score: <span className="font-semibold text-slate-800 dark:text-slate-200">{playerScores[slug] || 0}</span>
       </div>
 
       <button
@@ -119,9 +117,64 @@ export default function Games() {
     { title: "Bubble Popper", subtitle: "Easy", icon: "/game_covers/Bubbles.png", slug: "bubble-popper", tags: ["bubbles", "fun", "gesture"] },
   ];
 
-  //
-  // CAMERA SETUP
-  //
+  // Initialize user state from localStorage
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("currentUser");
+    return saved
+      ? JSON.parse(saved)
+      : { name: "", email: "", photo: "", emojiAvatar: "", userDescription: "", cognitoSub: "" };
+  });
+
+  const [playerScores, setPlayerScores] = useState({});
+
+
+  // Get current player's scores for all games in this ^^^ list.
+ useEffect(() => {
+  if (!user.cognitoSub) return; // make sure we have a logged-in user
+
+  async function fetchScores() {
+    try {
+      const scores = {};
+
+      // Iterate through all games by slug
+      for (const game of GAMES) {
+        const res = await fetch(`http://localhost:5001/playerStats/${game.slug}/${user.cognitoSub}`);
+        if (res.ok) {
+          const data = await res.json();
+          scores[game.slug] = data.highScore || 0; // save high score
+        } else {
+          scores[game.slug] = 0; // no stats found yet
+        }
+      }
+
+      setPlayerScores(scores);
+      // Add the players scores into local storage
+      localStorage.setItem("playerScores", JSON.stringify(scores));
+    } catch (err) {
+      console.error("Error fetching player scores:", err);
+    }
+  }
+
+  fetchScores();
+}, [user.cognitoSub]);
+
+
+
+  // Filters
+  const [query, setQuery] = useState("");
+  const [tagFilter, setTagFilter] = useState("");
+  const allTags = useMemo(() => {
+    const set = new Set();
+    GAMES.forEach(g => g.tags?.forEach(t => set.add(t)));
+    return Array.from(set).sort();
+  }, []);
+  const filtered = GAMES.filter(g => {
+    const q = query.trim().toLowerCase();
+    const matchesQ = !q || g.title.toLowerCase().includes(q) || g.subtitle.toLowerCase().includes(q) || g.tags?.some(t => t.includes(q));
+    const matchesTag = !tagFilter || g.tags?.includes(tagFilter);
+    return matchesQ && matchesTag;
+  });
+
   useEffect(() => {
     let stream;
     async function init() {
@@ -263,6 +316,51 @@ export default function Games() {
           </button>
         </div>
 
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-6 shadow-sm backdrop-blur">
+          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Game Selection</h1>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Choose a game to get started.</p>
+            </div>
+            <div className="flex w-full max-w-xl flex-col gap-3 md:flex-row md:items-center">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search games…"
+                className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 text-slate-900 dark:text-slate-100"
+              />
+              <select
+                value={tagFilter}
+                onChange={(e) => setTagFilter(e.target.value)}
+                className="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-sky-300 dark:ring-sky-500 focus:ring-2 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">All tags</option>
+                {allTags.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((g, idx) => (
+              <GameCard
+                key={g.slug}
+                title={g.title}
+                subtitle={g.subtitle}
+                icon={g.icon}
+                tags={g.tags}
+                slug={g.slug}
+                onView={() => openDetails(g.slug)}
+                delay={idx * 60}
+                playerScores={playerScores}
+              />
+            ))}
+            {filtered.length === 0 && (
+              <div className="col-span-full rounded-md border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-10 text-center text-sm text-slate-600 dark:text-slate-400">No games match your search.</div>
+            )}
+          </div>
+        </div>
         <GameList GAMES={GAMES} openDetails={(slug) => navigate(`/game/${slug}`)} />
       </div>
     </div>

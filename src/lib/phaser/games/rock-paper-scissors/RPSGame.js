@@ -11,34 +11,42 @@ const GESTURE_MAP = {
 };
 
 export default class MainScene extends Phaser.Scene {
-    constructor({ onPlayerScoreChange, onComputerScoreChange } = {}) {
-        super("MainScene")
-        this.playerGesture = null
-        this.roundActive = false
-        this.onPlayerScoreChange = onPlayerScoreChange || (() => {})
-        this.onComputerScoreChange = onComputerScoreChange || (() => {})
-        this.playerScore = 0
-        this.computerScore = 0
+    constructor({ onPlayerScoreChange, onComputerScoreChange, onGameEnd } = {}) {
+        super("MainScene");
+
+        this.playerGesture = null;
+        this.roundActive = false;
+
+        this.onPlayerScoreChange = onPlayerScoreChange || (() => {});
+        this.onComputerScoreChange = onComputerScoreChange || (() => {});
+        this.onGameEnd = onGameEnd || (() => {});
+
+        this.playerScore = 0;
+        this.computerScore = 0;
+        this.MAX_SCORE = 5; // end at 5 points
     }
 
     create() {
-        // ⭐ Start mediapipe tracking only for this game
+        // Tracking
         this.tracking = new TrackingInput(this);
         this.tracking.start();
 
-        // ⭐ Cleanup when scene shuts down
         this.events.on("shutdown", () => {
+            console.log("RPS → Scene shutdown (NOT a game end)");
+            this.roundActive = false;
             this.tracking?.stop?.();
             this.gesture?.stop?.();
         });
 
-        // ⭐ Cleanup when scene is destroyed
         this.events.on("destroy", () => {
+            console.log("RPS → Scene destroyed (NOT a game end)");
+            this.roundActive = false;
             this.tracking?.stop?.();
             this.gesture?.stop?.();
         });
 
-        // Gesture detector
+
+        // Gestures
         this.gesture = new GestureDetected(this);
         this.gesture.start();
 
@@ -64,12 +72,19 @@ export default class MainScene extends Phaser.Scene {
         this.resultText.setText("Show gesture");
     }
 
-    resetScores() {
-        this.playerScore = 0
-        this.computerScore = 0
-        // Notify React that scores are reset
-        this.onPlayerScoreChange(0)
-        this.onComputerScoreChange(0)
+    endGame() {
+        console.log("RPS → GAME OVER, sending score to React");
+
+        // Stop input
+        this.roundActive = false;
+        this.tracking?.stop?.();
+        this.gesture?.stop?.();
+
+        // Fire callback
+        this.onGameEnd(this.playerScore);
+
+        // ALSO fire Phaser event (React can detect this too)
+        this.events.emit("gameover", { score: this.playerScore });
     }
 
     playRound() {
@@ -78,23 +93,27 @@ export default class MainScene extends Phaser.Scene {
         const ai = this.randomAI();
         const result = this.compare(this.playerGesture, ai);
 
-        // Update scores based on result
         if (result === "You win") {
-            this.playerScore++
-            if (this.onPlayerScoreChange) {
-                this.onPlayerScoreChange(this.playerScore)
-            }
+            this.playerScore++;
+            this.onPlayerScoreChange(this.playerScore);
         } else if (result === "You lose") {
-            this.computerScore++
-            if (this.onComputerScoreChange) {
-                this.onComputerScoreChange(this.computerScore)
-            }
+            this.computerScore++;
+            this.onComputerScoreChange(this.computerScore);
         }
 
         this.resultText.setText(
             `You: ${this.playerGesture}\nAI: ${ai}\n${result}`
         );
 
+        // Check if game should end
+        if (this.playerScore >= this.MAX_SCORE) {
+            return this.endGame();
+        }
+        if (this.computerScore >= this.MAX_SCORE) {
+            return this.endGame();
+        }
+
+        // Otherwise start next round
         this.time.delayedCall(1500, () => this.startRound());
     }
 

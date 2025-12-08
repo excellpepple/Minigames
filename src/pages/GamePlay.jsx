@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import FlappyBird from "./FlappyBird.jsx";
 import CameraBubble from "./CameraBubble.jsx";
 import CameraGame from "./CameraGame.jsx";
-import BubblePop from "./BubblePop.jsx";
+import BubblePop from "./BubblePop.jsx"; 
 import MainGame from "./MainGame.jsx";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -27,11 +27,51 @@ export default function GamePlay() {
 
   const [playerScore, setPlayerScore] = useState(0);
   const [computerScore, setComputerScore] = useState(0);
-  const [highestScore, setHighestScore] = useState(0); // session-only high score
+  // Updates this to load saved high score for this game from localStorage
+  const [highestScore, setHighestScore] = useState(() => {
+    const saved = JSON.parse(localStorage.getItem("playerScores"));
+    return saved && saved[slug] !== undefined ? saved[slug] : 0;
+  });
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [gameKey, setGameKey] = useState(0);
+
+  const [user, setUser] = useState(() => {
+      const saved = localStorage.getItem("currentUser");
+      return saved
+        ? JSON.parse(saved)
+        : { name: "", email: "", photo: "", emojiAvatar: "", userDescription: "", cognitoSub: "" };
+    });
+
+  // Function to submit final score of a game to the database.
+  async function submitScore(finalScore) {
+    try {
+        const playerData = {
+          gameId: slug,
+          playerId: user.cognitoSub,
+          newScore: finalScore
+        };
+        console.log(playerData)
+
+        const res = await fetch("http://localhost:5001/updatePlayerScore", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(playerData)
+        });
+
+        if (!res.ok) {
+          throw new Error("Database Error");
+        }
+
+        const mongoData = await res.json();
+        console.log("Updated player stats:", mongoData);
+      } catch (err) {
+        console.error("Error updating score:", err);
+      } finally {console.log("SUBMIT SCORE FUNCTION DONE")}
+  }
 
   //score information should be saved to the database
   useEffect(() => {
@@ -39,6 +79,9 @@ export default function GamePlay() {
     setHighestScore(playerScore);
   }
 }, [playerScore, highestScore]);
+
+  
+
 
   // Enter fullscreen when game starts
   useEffect(() => {
@@ -79,11 +122,21 @@ export default function GamePlay() {
     setGameKey(prev => prev + 1); // Force remount/reset of game
   }
 
-  function handleGameEnd(finalScore) {
+  function handleGameEnd(forcedScore) {
+    const finalScore = forcedScore ?? playerScore;
+    console.log("HANDLE GAME END FUNCTION CALLED")
+    submitScore(finalScore);
     setGameEnded(true);
     setIsGameActive(false);
+    // --- UPDATE LOCAL STORAGE HIGH SCORE ---
     if (finalScore > highestScore) {
       setHighestScore(finalScore);
+
+      // pull existing scores
+      const storedScores = JSON.parse(localStorage.getItem("playerScores") || "{}");
+
+      // update the score for THIS game
+      storedScores[slug] = finalScore;
     }
   }
 
@@ -196,7 +249,9 @@ export default function GamePlay() {
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             {slug === "flappy-bird" ? (
-              <FlappyBird onScoreChange={setPlayerScore}/>
+              <FlappyBird 
+              onGameEnd={handleGameEnd}
+              onScoreChange={setPlayerScore}/>
             ) : slug === "bubble-popper" ? (
               <BubblePop
                 onGameEnd={handleGameEnd}
@@ -207,6 +262,7 @@ export default function GamePlay() {
                 key={gameKey}
                 onPlayerScoreChange={setPlayerScore}
                 onComputerScoreChange={setComputerScore}
+                onGameEnd={handleGameEnd}
               />
             ) : (
             <div className="w-full max-w-6xl h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">

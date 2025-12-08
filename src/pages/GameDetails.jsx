@@ -54,6 +54,7 @@ export default function GameDetails() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const game = GAME_DATA[slug] || GAME_DATA["rock-paper-scissors"];
+  const scores = JSON.parse(localStorage.getItem("playerScores") || "{}");
 
   function handlePlay() {
     navigate(`/play/${slug}`);
@@ -124,7 +125,7 @@ export default function GameDetails() {
                 <h3 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">Your Stats</h3>
                 <div className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-4 py-3">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Top Score</span>
-                  <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">{game.topScore}</span>
+                  <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">{scores[slug]}</span>
                 </div>
               </div>
 

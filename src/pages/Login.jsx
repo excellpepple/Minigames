@@ -7,13 +7,19 @@ const btn =
   "w-full rounded-md border-2 border-sky-400 dark:border-sky-500 bg-white dark:bg-slate-800 px-6 py-3 text-lg font-semibold text-sky-600 dark:text-sky-400 transition hover:bg-sky-400 dark:hover:bg-sky-500 hover:text-white disabled:opacity-50";
 
 export default function Login() {
-  const navigate = useNavigate();
+  const nav = useNavigate();
   const [username, setUsername] = useState(""); 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  function saveUser(user) {
+    localStorage.setItem("currentUser", JSON.stringify(user));
+  }
+
   async function handleSubmit(e) {
+    // First we wipe local storage to keep it clean
+    localStorage.clear();
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -31,7 +37,30 @@ export default function Login() {
 
       if (!response.ok) throw new Error(data.error || "Login failed");
 
-      // TODO: once AWS Cognito session tokens are available, add them here
+
+      const res = await fetch(`http://localhost:5001/getUser/${data.cognitoSub}`);
+  
+      if (!res.ok) {
+        throw new Error("Database Error");
+      }
+
+      const mongoData = await res.json();
+
+      saveUser({
+        username,
+        cognitoSub: data.cognitoSub,
+        accessToken: data.AccessToken,
+        idToken: data.IdToken,
+        refreshToken: data.RefreshToken,
+
+        userDescription: mongoData.userDescription,
+        photo: mongoData.photo,
+        emojiAvatar: mongoData.emojiAvatar,
+      });
+
+      console.log("Saved user:", JSON.parse(localStorage.getItem("currentUser")));
+
+
       nav("/games");
     } catch (err) {
       console.error("Login error:", err);
