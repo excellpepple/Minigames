@@ -409,4 +409,3 @@ export default function BubblePop({ onGameEnd, onScoreUpdate }) {
     </div>
   );
 }
-

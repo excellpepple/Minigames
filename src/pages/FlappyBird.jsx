@@ -84,7 +84,7 @@ export default function FlappyBird({ onScoreChange, onGameEnd }) {
           height: "100%",
           objectFit: "cover",
           opacity: 0,
-          zIndex: 0
+          zIndex: 0,
         }}
       />
 
@@ -103,4 +103,3 @@ export default function FlappyBird({ onScoreChange, onGameEnd }) {
     </div>
   );
 }
-
