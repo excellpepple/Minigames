@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \"node ./src/backend/loginBackend.js\" \"node ./src/backend/mongoBackend.js\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
