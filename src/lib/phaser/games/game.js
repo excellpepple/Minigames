@@ -172,6 +172,7 @@ export default class GameScene extends Phaser.Scene {
       "GAME OVER, SPACE TO RESTART",
       { fontSize: '32px', fill: '#ff0000' }
     );
+    this.events.emit("shutdown");
 
     this.input.keyboard.once('keydown-SPACE', () => {
       this.scene.restart();

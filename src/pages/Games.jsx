@@ -135,6 +135,8 @@ export default function Games() {
       }
 
       setPlayerScores(scores);
+      // Add the players scores into local storage
+      localStorage.setItem("playerScores", JSON.stringify(scores));
     } catch (err) {
       console.error("Error fetching player scores:", err);
     }

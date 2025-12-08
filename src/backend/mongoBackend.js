@@ -151,6 +151,7 @@ app.post("/updatePlayerScore", async (req, res) => {
     if (newScore > stats.highScore) {
       stats.highScore = newScore;
     }
+
     await stats.save();
 
     res.json({
@@ -208,6 +209,10 @@ app.get("/playerStats/:gameId/:playerId", async (req, res) => {
     const stats = await PlayerStats.findOne({ gameId, playerId });
 
     if (!stats) {
+      // Send a success code so that we dont get an error when a players stats arent found for a game.
+      //return res.status(200).send();
+
+      // For if we want to send an error message.
       return res.status(404).json({ message: "Player stats not found for this game." });
     }
 

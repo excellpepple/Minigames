@@ -2,26 +2,40 @@ import React, { useRef, useEffect } from "react";
 import { createTracker } from "../lib/tracking/phaserTracker.js";
 import { startCamera } from "../lib/tracking/camera.js";
 
-export default function MainGame({configFile, onPlayerScoreChange, onComputerScoreChange}) {
-  //initalize the camera and start tracking
+/**
+ * MainGame wrapper that:
+ * - Starts Mediapipe tracking
+ * - Loads the Phaser RPS game
+ * - Passes score updates + onGameEnd back to GamePlay.jsx
+ */
+export default function MainGame({
+  configFile,
+  onPlayerScoreChange,
+  onComputerScoreChange,
+  onGameEnd
+}) {
   const videoRef = useRef(null);
   const holisticRef = useRef(null);
-  const phaserStarted = useRef(false);
+
   const gameInstanceRef = useRef(null);
   const trackingActive = useRef(true);
+  const phaserStarted = useRef(false);
 
   useEffect(() => {
     trackingActive.current = true;
 
+    // --------------------------
+    // START MEDIAPIPE TRACKING
+    // --------------------------
     const startTracking = async () => {
       holisticRef.current = createTracker();
       await startCamera(videoRef.current);
 
       const processFrame = async () => {
         if (!trackingActive.current) return;
-        if (holisticRef.current)
+        if (holisticRef.current) {
           await holisticRef.current.send({ image: videoRef.current });
-
+        }
         requestAnimationFrame(processFrame);
       };
 
@@ -30,60 +44,90 @@ export default function MainGame({configFile, onPlayerScoreChange, onComputerSco
 
     startTracking();
 
-    // Clean up previous game instance if it exists
+    // --------------------------
+    // DESTROY ANY PREVIOUS GAME
+    // --------------------------
     if (gameInstanceRef.current) {
       try {
         gameInstanceRef.current.destroy(true);
-      } catch (e) {
-        console.warn("Error destroying previous game:", e);
+      } catch (err) {
+        console.warn("Error destroying previous Phaser instance:", err);
       }
       gameInstanceRef.current = null;
     }
 
-    // Reset phaser started flag to allow recreation
     phaserStarted.current = false;
 
-    // start phaser
+    // --------------------------
+    // LOAD PHASER RPS GAME
+    // --------------------------
     if (!phaserStarted.current) {
       phaserStarted.current = true;
-      //import the games config to use it's 'create game' function, which will put the game in the container on the webpage
-      import("../lib/phaser/games/rock-paper-scissors/RPSConfig.js").then(({ default: createGame }) => {
-        // Use setTimeout to ensure DOM is ready
-        setTimeout(() => {
-          const container = document.getElementById("game-container");
-          if (container) {
-            const game = createGame("game-container", { 
-              onPlayerScoreChange: onPlayerScoreChange || (() => {}), 
-              onComputerScoreChange: onComputerScoreChange || (() => {})
+
+      import("../lib/phaser/games/rock-paper-scissors/RPSConfig.js")
+        .then(({ default: createGame }) => {
+          setTimeout(() => {
+            const container = document.getElementById("game-container");
+            if (!container) {
+              console.error("game-container not found");
+              return;
+            }
+
+            const game = createGame("game-container", {
+              onPlayerScoreChange: onPlayerScoreChange || (() => {}),
+              onComputerScoreChange: onComputerScoreChange || (() => {}),
+              onGameEnd: onGameEnd || (() => {})   // ⭐ IMPORTANT
             });
+
             gameInstanceRef.current = game;
-          } else {
-            console.error("game-container not found");
-          }
-        }, 100);
-      });
+          }, 100);
+        })
+        .catch((err) => console.error("Error loading RPS game:", err));
     }
 
-    // Cleanup function
+    // --------------------------
+    // CLEANUP WHEN COMPONENT UNMOUNTS
+    // --------------------------
     return () => {
+      trackingActive.current = false;
+
+      // ⭐ FORCE GAME END IF USER EXITS WITHOUT NATURAL GAMEOVER
       if (gameInstanceRef.current) {
         try {
+          const scene = gameInstanceRef.current.scene?.keys?.MainScene;
+          const finalScore = scene?.playerScore || 0;
+
+          if (typeof onGameEnd === "function") {
+            console.log("React → forcing game end on unmount (RPS)", finalScore);
+            onGameEnd(finalScore);
+          }
+        } catch (err) {
+          console.warn("Error reading final score during unmount:", err);
+        }
+
+        // Destroy instance
+        try {
           gameInstanceRef.current.destroy(true);
-        } catch (e) {
-          console.warn("Error destroying game on unmount:", e);
+        } catch (err) {
+          console.warn("Error destroying Phaser game:", err);
         }
         gameInstanceRef.current = null;
       }
+
       phaserStarted.current = false;
     };
-  }, [onPlayerScoreChange, onComputerScoreChange]);
-//styling for the video feed, and then the game container.
+  }, [onPlayerScoreChange, onComputerScoreChange, onGameEnd]);
+
+  // --------------------------
+  // RENDER VIDEO + GAME CANVAS
+  // --------------------------
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
       <video
         ref={videoRef}
         autoPlay
         playsInline
+        muted
         style={{
           position: "absolute",
           top: 0,
@@ -91,8 +135,8 @@ export default function MainGame({configFile, onPlayerScoreChange, onComputerSco
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          zIndex: 0,
-          transform: "scaleX(-1)"
+          transform: "scaleX(-1)",
+          zIndex: 0
         }}
       />
 
@@ -107,7 +151,7 @@ export default function MainGame({configFile, onPlayerScoreChange, onComputerSco
           zIndex: 1,
           pointerEvents: "none"
         }}
-      ></div>
+      />
     </div>
   );
 }
