@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { startCamera } from "../lib/tracking/camera.js";
 
+const backendAPI = import.meta.env.BACKEND_URI ?? "http://localhost";
+
 //Animated user avatar with pulse effect
 function UserAvatarSmall({ onClick }) {
   return (
@@ -125,7 +127,7 @@ export default function Games() {
 
       // Iterate through all games by slug
       for (const game of GAMES) {
-        const res = await fetch(`http://localhost:5001/playerStats/${game.slug}/${user.cognitoSub}`);
+        const res = await fetch(`${backendAPI}:5001/playerStats/${game.slug}/${user.cognitoSub}`);
         if (res.ok) {
           const data = await res.json();
           scores[game.slug] = data.highScore || 0; // save high score

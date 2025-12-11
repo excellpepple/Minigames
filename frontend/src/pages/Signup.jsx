@@ -2,6 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
+const backendAPI = import.meta.env.BACKEND_URI ?? "http://localhost";
+
+const CLIENT_ID = import.meta.env.CLIENT_ID;
+const USERPOOL_ID = import.meta.env.COGNITO_USER_POOL_ID;
+
 const input =
   "w-full rounded-md border border-gray-300 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-3 outline-none transition focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500";
 const btn =
@@ -39,8 +44,8 @@ export default function Signup() {
   // Having these values here is safe, these alone dont allow access to our user pool in any particularly sensitive way
   // All you can do with this info is sign up or log in
   const poolData = {
-    UserPoolId: "us-east-2_TnkqczGxv",
-    ClientId: "799nkfc8ec7arm089oet4r1m45",
+    UserPoolId: USERPOOL_ID,
+    ClientId: CLIENT_ID,
   };
   const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
@@ -90,7 +95,7 @@ export default function Signup() {
       setResultMsg("Account confirmed successfully!");
 
       // Send the Cognito sub to Mongo backend
-      axios.post("http://localhost:5001/signup", {
+      axios.post(`${backendAPI}/signup`, {
         cognitoSub: cognitoSub,
         displayName: userData.Username,
         email,

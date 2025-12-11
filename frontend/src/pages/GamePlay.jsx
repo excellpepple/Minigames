@@ -6,6 +6,7 @@ import BubblePop from "./BubblePop.jsx";
 import MainGame from "./MainGame.jsx";
 import { useParams, useNavigate } from "react-router-dom";
 
+const backendAPI = import.meta.env.BACKEND_URI ?? "http://localhost";
 // Common Tailwind CSS button styles for reusability
 const buttonStyle =
   "rounded-md border-2 border-sky-400 dark:border-sky-500 bg-white dark:bg-slate-900 px-10 py-3 text-2xl font-semibold text-sky-600 dark:text-sky-400 transition hover:bg-sky-400 dark:hover:bg-sky-500 hover:text-white";
@@ -54,7 +55,7 @@ export default function GamePlay() {
         };
         console.log(playerData)
 
-        const res = await fetch("http://localhost:5001/updatePlayerScore", {
+        const res = await fetch(`${backendAPI}:5001/updatePlayerScore`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-
+const backendAPI = import.meta.env.BACKEND_URI ?? "http://localhost";
 const input =
   "w-full rounded-md border border-gray-300 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-3 outline-none transition focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500";
 const btn =
@@ -27,7 +27,7 @@ export default function Login() {
     // We dont use Cognitos API directly in this file. For security, the login calls must be made from the backend.
     // For now, loginBackend.js needs to be ran on port 4000 for login functionality to work.
     try {
-      const response = await fetch("http://localhost:4000/login", {
+      const response = await fetch(`${backendAPI}:4000/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -38,7 +38,7 @@ export default function Login() {
       if (!response.ok) throw new Error(data.error || "Login failed");
 
 
-      const res = await fetch(`http://localhost:5001/getUser/${data.cognitoSub}`);
+      const res = await fetch(`${backendAPI}:5001/getUser/${data.cognitoSub}`);
   
       if (!res.ok) {
         throw new Error("Database Error");
