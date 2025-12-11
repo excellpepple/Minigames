@@ -2,6 +2,8 @@ import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 
+const backendAPI = import.meta.env.BACKEND_URI ?? "http://localhost";
+
 export default function ProfileSetup() {
   const { isDark, toggleTheme } = useTheme();
   const nav = useNavigate();
@@ -31,7 +33,7 @@ export default function ProfileSetup() {
     if (!updatedUser.cognitoSub) return;
 
     try {
-      await fetch("http://localhost:5001/updateAvatar", {
+      await fetch(`${backendAPI}:5001/updateAvatar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -50,7 +52,7 @@ export default function ProfileSetup() {
     if (!updatedUser.cognitoSub) return;
 
     try {
-      await fetch("http://localhost:5001/updateUserDescription", {
+      await fetch(`${backendAPI}:5001/updateUserDescription`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
